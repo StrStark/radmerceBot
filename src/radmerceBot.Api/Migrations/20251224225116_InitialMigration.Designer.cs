@@ -12,8 +12,8 @@ using radmerceBot.Api.Data;
 namespace radmerceBot.Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251224172833_InitialMigrations4")]
-    partial class InitialMigrations4
+    [Migration("20251224225116_InitialMigration")]
+    partial class InitialMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,6 +24,26 @@ namespace radmerceBot.Api.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+
+            modelBuilder.Entity("radmerceBot.Api.Models.FreeVideo", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Caption")
+                        .HasColumnType("text");
+
+                    b.Property<string>("FileId")
+                        .HasColumnType("text");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("FreeVideos");
+                });
 
             modelBuilder.Entity("radmerceBot.Api.Models.PhoneOtp", b =>
                 {
@@ -52,13 +72,34 @@ namespace radmerceBot.Api.Migrations
                     b.ToTable("PhoneOtps");
                 });
 
-            modelBuilder.Entity("radmerceBot.Api.Models.SuperUser", b =>
+            modelBuilder.Entity("radmerceBot.Api.Models.RequestedConsultation", b =>
                 {
-                    b.Property<long>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("FullName")
+                        .HasColumnType("text");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("RequestedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<long>("TelegramUserId")
                         .HasColumnType("bigint");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+                    b.HasKey("Id");
+
+                    b.ToTable("RequestedConsultations");
+                });
+
+            modelBuilder.Entity("radmerceBot.Api.Models.SuperUser", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -76,12 +117,70 @@ namespace radmerceBot.Api.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<int>("State")
+                        .HasColumnType("integer");
+
                     b.Property<long>("TelegramUserId")
                         .HasColumnType("bigint");
+
+                    b.Property<string>("TempData")
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
                     b.ToTable("SuperUsers");
+                });
+
+            modelBuilder.Entity("radmerceBot.Api.Models.SuperUserPendingMessage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsSent")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("MessageText")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("SuperUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("TargetUserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("PendingMessages");
+                });
+
+            modelBuilder.Entity("radmerceBot.Api.Models.SuperUserPendingSms", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsSent")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("MessageText")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("SuperUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("TargetUserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("PendingSmsMessages");
                 });
 
             modelBuilder.Entity("radmerceBot.Core.Models.User", b =>
@@ -90,8 +189,14 @@ namespace radmerceBot.Api.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<int>("CompletedFreeVideoCycles")
+                        .HasColumnType("integer");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("CurrentFreeVideoIndex")
+                        .HasColumnType("integer");
 
                     b.Property<string>("FirstName")
                         .HasColumnType("text");
