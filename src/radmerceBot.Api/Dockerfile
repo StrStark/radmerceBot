@@ -12,7 +12,7 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["src/radmerceBot.Api/radmerceBot.Api.csproj", "src/radmerceBot.Api/"]
+COPY ["./radmerceBot.Api.csproj", "src/radmerceBot.Api/"]
 RUN dotnet restore "./src/radmerceBot.Api/radmerceBot.Api.csproj"
 COPY . .
 WORKDIR "/src/src/radmerceBot.Api"
