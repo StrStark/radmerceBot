@@ -54,7 +54,8 @@ public class ippanelService
         var response = await _httpClient.SendAsync(request);
 
         var responseBody = await response.Content.ReadAsStringAsync();
-
+        Console.WriteLine(response.StatusCode);
+        Console.WriteLine(responseBody);
         if (!response.IsSuccessStatusCode)
             throw new Exception($"IPPanel Error: {responseBody}");
 
