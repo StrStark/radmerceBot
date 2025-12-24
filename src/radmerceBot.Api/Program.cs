@@ -12,8 +12,7 @@ var configuration = builder.Configuration;
 var services = builder.Services;
 var env = builder.Environment;
 
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(configuration.GetConnectionString("Default")));
+builder.Services.AddDbContext<AppDbContext>(options =>options.UseNpgsql(configuration.GetConnectionString("Default")));
 
 builder.Services.AddHttpClient();
 
