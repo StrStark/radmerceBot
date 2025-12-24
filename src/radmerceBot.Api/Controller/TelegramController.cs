@@ -33,6 +33,7 @@ public class TelegramController : ControllerBase
     [HttpPost("webhook")]
     public async Task<IActionResult> Webhook([FromBody] Update update)
     {
+        Console.WriteLine("got the webhook");
         if (update.Type != UpdateType.Message)
             return Ok();
 
