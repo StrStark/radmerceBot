@@ -12,7 +12,7 @@ public class User
 
     public string? LastName { get; set; }
 
-    public string PhoneNumber { get; set; } = null!;
+    public string? PhoneNumber { get; set; }
     public bool IsPhoneVerified { get; set; }
 
     public UserStep Step { get; set; }
