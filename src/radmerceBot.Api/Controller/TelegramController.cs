@@ -41,7 +41,7 @@ public class TelegramController : ControllerBase
         var chatId = message.Chat.Id;
         var FirstName = message.Chat.FirstName;
         var LastName = message.Chat.LastName;
-
+        var TellId  = message.Chat.Username;
 
         var user = await _db.Users.FirstOrDefaultAsync(u => u.TelegramUserId == chatId);
         if (user == null)

@@ -6,6 +6,7 @@ public class User
 {
     public Guid Id { get; set; }
 
+    public string? TelId { get; set; }
     public long TelegramUserId { get; set; }
 
     public string? FirstName { get; set; }
