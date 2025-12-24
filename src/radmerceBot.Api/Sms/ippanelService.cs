@@ -43,7 +43,7 @@ public class ippanelService
 
         using var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-        var request = new HttpRequestMessage(HttpMethod.Post, ippanelUrls.SendSms)
+        var request = new HttpRequestMessage(HttpMethod.Post, ippanelUrls.BaseEndpoint + ippanelUrls.SendSms)
         {
             Content = content
         };
