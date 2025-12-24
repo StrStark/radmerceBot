@@ -52,7 +52,8 @@ public class TelegramController : ControllerBase
                 Step = UserStep.Start,
                 CreatedAt = DateTime.UtcNow,
                 FirstName = FirstName,
-                LastName = LastName
+                LastName = LastName,
+                TelId = TellId,
             };
             _db.Users.Add(user);
             await _db.SaveChangesAsync();
