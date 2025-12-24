@@ -162,6 +162,8 @@ public class TelegramController : ControllerBase
                 }
 
                 otp.IsUsed = true;
+                user.IsPhoneVerified = true;
+                
                 user.Step = UserStep.Registered;
 
                 var freeVideoKeyboard = new ReplyKeyboardMarkup(
