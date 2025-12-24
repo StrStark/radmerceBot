@@ -39,6 +39,9 @@ public class TelegramController : ControllerBase
 
         var message = update.Message!;
         var chatId = message.Chat.Id;
+        var FirstName = message.Chat.FirstName;
+        var LastName = message.Chat.LastName;
+
 
         var user = await _db.Users.FirstOrDefaultAsync(u => u.TelegramUserId == chatId);
         if (user == null)
@@ -47,7 +50,9 @@ public class TelegramController : ControllerBase
             {
                 TelegramUserId = chatId,
                 Step = UserStep.Start,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                FirstName = FirstName,
+                LastName = LastName
             };
             _db.Users.Add(user);
             await _db.SaveChangesAsync();
@@ -86,7 +91,7 @@ public class TelegramController : ControllerBase
                     {
                         PhoneNumber = user.PhoneNumber,
                         Code = otpCode,
-                        ExpireAt = DateTime.UtcNow.AddMinutes(2),
+                        ExpireAt = DateTime.UtcNow.AddMinutes(10),
                         IsUsed = false
                     };
 
