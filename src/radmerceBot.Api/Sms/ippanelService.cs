@@ -28,14 +28,15 @@ public class ippanelService
         string message,
         string mobile)
     {
+        Console.WriteLine("Sending Otp Token to :  ");
         var payload = new
         {
             sending_type = "webservice",
             from_number = fromNumber,
-            message,
+            message = message,
             @params = new
             {
-                recipients = new[] { mobile }
+                recipients = new[] { $"+{mobile}" }
             }
         };
 
@@ -47,6 +48,7 @@ public class ippanelService
         {
             Content = content
         };
+        Console.WriteLine(ippanelUrls.BaseEndpoint + ippanelUrls.SendSms);
         request.Headers.TryAddWithoutValidation("Authorization", _token);
 
         var response = await _httpClient.SendAsync(request);
