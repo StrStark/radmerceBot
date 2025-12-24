@@ -17,6 +17,9 @@ public class User
     public string? PhoneNumber { get; set; }
     public bool IsPhoneVerified { get; set; }
 
+    public int CurrentFreeVideoIndex { get; set; } = 0;
+    public int CompletedFreeVideoCycles { get; set; } = 0;
+
     public UserStep Step { get; set; }
 
     public DateTime CreatedAt { get; set; }

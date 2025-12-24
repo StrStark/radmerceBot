@@ -1,8 +1,12 @@
-﻿namespace radmerceBot.Api.Models;
+﻿using radmerceBot.Api.Enums;
+using System.ComponentModel.DataAnnotations;
+
+namespace radmerceBot.Api.Models;
 
 public class SuperUser
 {
-    public long Id { get; set; }
+    [Key]
+    public Guid Id { get; set; }
 
     public long TelegramUserId { get; set; }
 
@@ -13,6 +17,9 @@ public class SuperUser
     public string PhoneNumber { get; set; } = null!;
 
     public bool IsActive { get; set; } = true;
+    public SuperUserState State { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    public string? TempData { get; set; }
 }

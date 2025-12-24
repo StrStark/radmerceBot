@@ -3,7 +3,7 @@ using radmerceBot.Api.Data;
 using radmerceBot.Api.Interfaces;
 using radmerceBot.Api.Services;
 using radmerceBot.Api.Sms;
-using radmerceBot.Api.Telegram;
+using radmerceBot.Api.TelegramService;
 
 
 var builder = WebApplication.CreateBuilder(args);

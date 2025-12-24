@@ -1,22 +1,20 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using radmerceBot.Api.Models;
 using radmerceBot.Core.Models;
+using System;
 using System.Collections.Generic;
 
 namespace radmerceBot.Api.Data;
 
-public class AppDbContext : DbContext
+public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
 {
-    public AppDbContext(DbContextOptions<AppDbContext> options)
-        : base(options)
-    {
-    }
-
     public DbSet<User> Users => Set<User>();
-
-    // OTP
     public DbSet<PhoneOtp> PhoneOtps => Set<PhoneOtp>();
-
-    // سوپر یوزر
     public DbSet<SuperUser> SuperUsers => Set<SuperUser>();
+    public DbSet<FreeVideo> FreeVideos => Set<FreeVideo>();
+    public DbSet<RequestedConsultation> RequestedConsultations => Set<RequestedConsultation>();
+    public DbSet<SuperUserPendingMessage> PendingMessages => Set<SuperUserPendingMessage>();
+    public DbSet<SuperUserPendingSms> PendingSmsMessages => Set<SuperUserPendingSms>();
+
+
 }

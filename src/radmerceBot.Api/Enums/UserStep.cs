@@ -7,7 +7,6 @@ public enum UserStep
     WaitingForPhone = 2,
     WaitingForOtp = 3,
     Registered = 4,
-    WatchingFreeVideos = 5,
-    OfferedPaidCourse = 6,
-    RequestedConsultation = 7
+    OfferedPaidCourse = 5,
+    RequestedConsultation = 6
 }
