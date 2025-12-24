@@ -61,64 +61,85 @@ public class TelegramController : ControllerBase
         switch (user.Step)
         {
             case UserStep.Start:
+                await _telegram.SendTextMessageAsync(
+                    chatId,
+                    "سلام 👋\nبه ربات آموزشی Radmerce خوش آمدید.\n\nلطفاً نام و نام خانوادگی خود را وارد کنید:"
+                );
 
-                var replyMarkup = new ReplyKeyboardMarkup(
-                    new[]
-                    {
-                        KeyboardButton.WithRequestContact("ارسال شماره من")
-                    })
+                user.Step = UserStep.WaitingForFullName;
+                await _db.SaveChangesAsync();
+                break;
+
+            case UserStep.WaitingForFullName:
+                if (string.IsNullOrWhiteSpace(message.Text))
+                {
+                    await _telegram.SendTextMessageAsync(
+                        chatId,
+                        "لطفاً نام و نام خانوادگی خود را به صورت متنی ارسال کنید."
+                    );
+                    break;
+                }
+
+                user.FullName = message.Text.Trim();
+
+                var phoneKeyboard = new ReplyKeyboardMarkup(
+                new[]
+                {
+                    KeyboardButton.WithRequestContact("📱 ارسال شماره من")
+                })
                 {
                     ResizeKeyboard = true,
                     OneTimeKeyboard = true
                 };
 
-                await _telegram.SendTextMessageAsync(chatId,
-                    "سلام! خوش آمدید به ربات آموزشی ما.\nلطفاً شماره تلفن خود را ارسال کنید.",
-                    replyMarkup);
+                await _telegram.SendTextMessageAsync(
+                    chatId,
+                    $"ممنون {user.FullName} 🌱\nحالا لطفاً شماره تلفن خود را ارسال کنید:",
+                    phoneKeyboard
+                );
 
                 user.Step = UserStep.WaitingForPhone;
                 await _db.SaveChangesAsync();
                 break;
 
+
             case UserStep.WaitingForPhone:
-                if (message.Contact != null && message.Contact.UserId == chatId)
-                {
-                    user.PhoneNumber = message.Contact.PhoneNumber;
-
-                    var otpCode = Random.Shared.Next(100000, 999999).ToString();
-
-                    var phoneotp = new PhoneOtp
-                    {
-                        PhoneNumber = user.PhoneNumber,
-                        Code = otpCode,
-                        ExpireAt = DateTime.UtcNow.AddMinutes(10),
-                        IsUsed = false
-                    };
-
-                    _db.PhoneOtps.Add(phoneotp);
-
-                    await _smsService.SendOtp(
-                        user.PhoneNumber,
-                        otpCode,
-                        HttpContext.RequestAborted
-                    );
-                    user.Step = UserStep.WaitingForOtp;
-
-                    await _db.SaveChangesAsync();
-
-                    await _telegram.SendTextMessageAsync(
-                        chatId,
-                        "کد تایید برای شماره شما ارسال شد.\nلطفاً کد را وارد کنید:"
-                    );
-                }
-                else
+                if (message.Contact == null || message.Contact.UserId != chatId)
                 {
                     await _telegram.SendTextMessageAsync(
                         chatId,
                         "لطفاً شماره خود را فقط از طریق دکمه ارسال کنید."
                     );
+                    break;
                 }
+
+                user.PhoneNumber = message.Contact.PhoneNumber;
+
+                var otpCode = Random.Shared.Next(100000, 999999).ToString();
+
+                _db.PhoneOtps.Add(new PhoneOtp
+                {
+                    PhoneNumber = user.PhoneNumber,
+                    Code = otpCode,
+                    ExpireAt = DateTime.UtcNow.AddMinutes(10),
+                    IsUsed = false
+                });
+
+                await _smsService.SendOtp(
+                    user.PhoneNumber,
+                    otpCode,
+                    HttpContext.RequestAborted
+                );
+
+                user.Step = UserStep.WaitingForOtp;
+                await _db.SaveChangesAsync();
+
+                await _telegram.SendTextMessageAsync(
+                    chatId,
+                    "🔐 کد تایید برای شما ارسال شد.\nلطفاً کد را وارد کنید:"
+                );
                 break;
+
             case UserStep.WaitingForOtp:
                 if (string.IsNullOrWhiteSpace(message.Text))
                     break;
@@ -129,14 +150,13 @@ public class TelegramController : ControllerBase
                         x.Code == message.Text &&
                         !x.IsUsed &&
                         x.ExpireAt > DateTime.UtcNow)
-                    .OrderBy(x => x.ExpireAt)
                     .FirstOrDefaultAsync();
 
                 if (otp == null)
                 {
                     await _telegram.SendTextMessageAsync(
                         chatId,
-                        "کد وارد شده نامعتبر یا منقضی شده است."
+                        "❌ کد وارد شده نامعتبر یا منقضی شده است."
                     );
                     break;
                 }
@@ -144,13 +164,22 @@ public class TelegramController : ControllerBase
                 otp.IsUsed = true;
                 user.Step = UserStep.Registered;
 
+                var freeVideoKeyboard = new ReplyKeyboardMarkup(
+                    new[]
+                    {
+            new KeyboardButton("🎥 مشاهده ویدیوهای رایگان")
+                    })
+                {
+                    ResizeKeyboard = true
+                };
+
                 await _db.SaveChangesAsync();
 
                 await _telegram.SendTextMessageAsync(
                     chatId,
-                    "✅ شماره شما با موفقیت تایید شد. خوش آمدید!"
+                    $"✅ احراز هویت با موفقیت انجام شد، {user.FullName}\n\nمی‌توانید ویدیوهای رایگان را مشاهده کنید:",
+                    freeVideoKeyboard
                 );
-
                 break;
 
 

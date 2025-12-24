@@ -3,10 +3,11 @@
 public enum UserStep
 {
     Start = 0,
-    WaitingForPhone = 1,
-    WaitingForOtp = 2,
-    Registered = 3,
-    WatchingFreeVideos = 4,
-    OfferedPaidCourse = 5,
-    RequestedConsultation = 6
+    WaitingForFullName = 1,
+    WaitingForPhone = 2,
+    WaitingForOtp = 3,
+    Registered = 4,
+    WatchingFreeVideos = 5,
+    OfferedPaidCourse = 6,
+    RequestedConsultation = 7
 }
