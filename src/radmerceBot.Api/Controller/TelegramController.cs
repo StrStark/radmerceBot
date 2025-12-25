@@ -649,7 +649,7 @@ public class TelegramController : ControllerBase
                     await _smsService.SendOtp($"{superUser.TempData}", Text, HttpContext.RequestAborted);
                     
 
-                    await _telegram.SendTextMessageAsync(chatId, "پیامک با موفقیت ارسال شد.");
+                    await _telegram.SendTextMessageAsync(chatId, "پیامک با موفقیت ارسال شد." , superUserKeyboard);
                     superUser.State = SuperUserState.Dashboard;
                     await _db.SaveChangesAsync();
 
