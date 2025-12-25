@@ -41,7 +41,16 @@ public class TelegramController : ControllerBase
 
         if (update.Type is not UpdateType.Message or UpdateType.CallbackQuery )
             return Ok();
-
+        var superUserKeyboard = new ReplyKeyboardMarkup(
+        [
+            [new KeyboardButton("🔍 جستجو در مخاطبین"), new KeyboardButton("📤 ارسال پیامک")],
+            [new KeyboardButton("🎥 ویدیوها")],
+            [new KeyboardButton("💾 خروجی CSV از کاربران و درخواست‌ها")],
+            [new KeyboardButton("📣 ارسال پیام به کاربران فعال")]
+        ])
+        {
+            ResizeKeyboard = true
+        };
         var message = update.Message!;
         var chatId = message.Chat.Id;
         var superUser = await _db.SuperUsers.FirstOrDefaultAsync(su => su.TelegramUserId == chatId);
@@ -183,16 +192,7 @@ public class TelegramController : ControllerBase
             switch (superUser.State)
             {
                 case SuperUserState.None:
-                    var superUserKeyboard = new ReplyKeyboardMarkup(
-                        [
-                            [new KeyboardButton("🔍 جستجو در مخاطبین"), new KeyboardButton("📤 ارسال پیامک")],
-                            [new KeyboardButton("🎥 ویدیوها")],
-                            [new KeyboardButton("💾 خروجی CSV از کاربران و درخواست‌ها")],
-                            [new KeyboardButton("📣 ارسال پیام به کاربران فعال")]
-                        ])
-                    {
-                        ResizeKeyboard = true
-                    };
+
 
                     await _telegram.SendTextMessageAsync(
                         chatId,
@@ -472,18 +472,7 @@ public class TelegramController : ControllerBase
                             superUser.State = SuperUserState.Dashboard;
                             await _db.SaveChangesAsync();
 
-                            var homeKeyboard = new ReplyKeyboardMarkup(
-                                new[]
-                                {
-                                new KeyboardButton("🔍 جستجو در مخاطبین"),
-                                new KeyboardButton("📤 ارسال پیامک"),
-                                new KeyboardButton("🎥 ویدیوها")
-                                })
-                            {
-                                ResizeKeyboard = true
-                            };
-
-                            await _telegram.SendTextMessageAsync(chatId, "بازگشت به داشبورد", homeKeyboard);
+                            await _telegram.SendTextMessageAsync(chatId, "بازگشت به داشبورد", superUserKeyboard);
                             break;
 
 
@@ -524,16 +513,7 @@ public class TelegramController : ControllerBase
                         {
 
                             await _telegram.SendTextMessageAsync(chatId,
-                                "خطا: فایل ویدیو پیدا نشد. لطفاً دوباره اقدام کنید.", new ReplyKeyboardMarkup(
-                                new[]
-                                {
-                                 new KeyboardButton("🔍 جستجو در مخاطبین"),
-                                 new KeyboardButton("📤 ارسال پیامک"),
-                                 new KeyboardButton("🎥 ویدیوها")
-                                })
-                                {
-                                    ResizeKeyboard = true
-                                });
+                                "خطا: فایل ویدیو پیدا نشد. لطفاً دوباره اقدام کنید.", superUserKeyboard);
 
                             superUser.State = SuperUserState.Dashboard;
                             await _db.SaveChangesAsync();
@@ -556,21 +536,11 @@ public class TelegramController : ControllerBase
                         superUser.State = SuperUserState.Dashboard;
                         await _db.SaveChangesAsync();
 
-                        var dashboardKeyboard = new ReplyKeyboardMarkup(
-                            new[]
-                            {
-                            new KeyboardButton("🔍 جستجو در مخاطبین"),
-                            new KeyboardButton("📤 ارسال پیامک"),
-                            new KeyboardButton("🎥 ویدیوها")
-                            })
-                        {
-                            ResizeKeyboard = true
-                        };
 
                         await _telegram.SendTextMessageAsync(
                             chatId,
                             $"ویدیو ذخیره شد.\nOrder: {order}\n\nبرای مدیریت ویدیوها دکمه 🎥 ویدیوها را بزنید.",
-                            dashboardKeyboard
+                            superUserKeyboard
                         );
                     }
                     else
