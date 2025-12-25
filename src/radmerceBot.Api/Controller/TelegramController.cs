@@ -184,15 +184,12 @@ public class TelegramController : ControllerBase
             {
                 case SuperUserState.None:
                     var superUserKeyboard = new ReplyKeyboardMarkup(
-                        new[]
-                        {
-                            new KeyboardButton("🔍 جستجو در مخاطبین"),
-                            new KeyboardButton("📤 ارسال پیامک"),
-                            new KeyboardButton("🎥 ویدیوها"),
-                            new KeyboardButton("💾 خروجی CSV از کاربران و درخواست‌ها"),
-                            new KeyboardButton("📣 ارسال پیام به کاربران فعال")
-
-                        })
+                        [
+                            [new KeyboardButton("🔍 جستجو در مخاطبین"), new KeyboardButton("📤 ارسال پیامک")],
+                            [new KeyboardButton("🎥 ویدیوها")],
+                            [new KeyboardButton("💾 خروجی CSV از کاربران و درخواست‌ها")],
+                            [new KeyboardButton("📣 ارسال پیام به کاربران فعال")]
+                        ])
                     {
                         ResizeKeyboard = true
                     };
@@ -268,8 +265,24 @@ public class TelegramController : ControllerBase
                         case "🎥 ویدیوها":
                             superUser.State = SuperUserState.ManagingVideos;
                             await _db.SaveChangesAsync();
-                            await _telegram.SendTextMessageAsync(chatId, "لیست ویدیوها:");
+
+                            var manageVideosKeyboard = new ReplyKeyboardMarkup(
+                                [
+                                    [new KeyboardButton("📋 مشاهده ویدیوها"), new KeyboardButton("➕ افزودن ویدیو")],
+                                    [new KeyboardButton("⬅️ بازگشت به داشبورد")]
+                                ]
+                            )
+                            {
+                                ResizeKeyboard = true
+                            };
+
+                            await _telegram.SendTextMessageAsync(
+                                chatId,
+                                "لیست ویدیوها (یکی را انتخاب کنید):",
+                                manageVideosKeyboard
+                            );
                             break;
+
 
                         default:
                             await _telegram.SendTextMessageAsync(chatId, "لطفاً یکی از گزینه‌های موجود را انتخاب کنید.");
