@@ -916,7 +916,7 @@ public class TelegramController : ControllerBase
     }
     bool IsValidPhone(string input)
     {
-        var pattern = @"^\989\d{9}$";
+        var pattern = @"^989\d{9}$";
         return Regex.IsMatch(input, pattern);
     }
     async Task<bool> BulkSmsProcessor(Stream File)
