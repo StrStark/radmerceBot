@@ -260,9 +260,25 @@ public class TelegramController : ControllerBase
                             break;
 
                         case "📤 ارسال پیامک":
-                            superUser.State = SuperUserState.SendingSms;
+                            var smsMenuKeyboard = new ReplyKeyboardMarkup(
+                            new[]
+                            {
+                                 new KeyboardButton("📨 ارسال پیامک تکی"),
+                                 new KeyboardButton("📂 ارسال پیامک گروهی (CSV)"),
+                                 new KeyboardButton("⬅️ بازگشت به داشبورد")
+                            })
+                            {
+                                ResizeKeyboard = true
+                            };
+
+                            await _telegram.SendTextMessageAsync(
+                                chatId,
+                                "نوع ارسال پیامک را انتخاب کنید:",
+                                smsMenuKeyboard
+                            );
+
+                            superUser.State = SuperUserState.SendingSms_Menu;
                             await _db.SaveChangesAsync();
-                            await _telegram.SendTextMessageAsync(chatId, "پیامک مورد نظر را وارد کنید:");
                             break;
 
                         case "🎥 ویدیوها":
@@ -331,26 +347,7 @@ public class TelegramController : ControllerBase
 
                 case SuperUserState.SendingSms:
 
-                    var smsMenuKeyboard = new ReplyKeyboardMarkup(
-                        new[]
-                        {
-                            new KeyboardButton("📨 ارسال پیامک تکی"),
-                            new KeyboardButton("📂 ارسال پیامک گروهی (CSV)"),
-                            new KeyboardButton("⬅️ بازگشت به داشبورد")
-                        })
-                    {
-                        ResizeKeyboard = true
-                    };
-
-                    await _telegram.SendTextMessageAsync(
-                        chatId,
-                        "نوع ارسال پیامک را انتخاب کنید:",
-                        smsMenuKeyboard
-                    );
-
-                    superUser.State = SuperUserState.SendingSms_Menu;
-                    await _db.SaveChangesAsync();
-                    break;
+                   
 
                 case SuperUserState.SendingSms_Menu:
                     switch (message.Text)
@@ -649,12 +646,8 @@ public class TelegramController : ControllerBase
                     if (string.IsNullOrEmpty(Text))
                         break;
 
-
-                    var Users = await _db.Users.FirstOrDefaultAsync(u => u.PhoneNumber == superUser.TempData);
-                    if (Users != null)
-                    {
-                        await _smsService.SendOtp(Users.PhoneNumber!, Text, HttpContext.RequestAborted);
-                    }
+                    await _smsService.SendOtp(Users.PhoneNumber!, Text, HttpContext.RequestAborted);
+                    
 
                     await _telegram.SendTextMessageAsync(chatId, "پیامک با موفقیت ارسال شد.");
                     superUser.State = SuperUserState.Dashboard;
@@ -923,7 +916,7 @@ public class TelegramController : ControllerBase
     }
     bool IsValidPhone(string input)
     {
-        var pattern = @"^\+989\d{9}$";
+        var pattern = @"^\989\d{9}$";
         return Regex.IsMatch(input, pattern);
     }
     async Task<bool> BulkSmsProcessor(Stream File)
