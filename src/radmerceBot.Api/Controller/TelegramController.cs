@@ -304,7 +304,7 @@ public class TelegramController : ControllerBase
 
 
                         default:
-                            await _telegram.SendTextMessageAsync(chatId, "لطفاً یکی از گزینه‌های موجود را انتخاب کنید.");
+                            await _telegram.SendTextMessageAsync(chatId, "لطفاً یکی از گزینه‌های موجود را انتخاب کنید." , superUserKeyboard);
                             break;
                     }
                     break;
@@ -318,7 +318,7 @@ public class TelegramController : ControllerBase
 
                     if (!matchedUsers.Any())
                     {
-                        await _telegram.SendTextMessageAsync(chatId, "هیچ کاربری با این مشخصات پیدا نشد.");
+                        await _telegram.SendTextMessageAsync(chatId, "هیچ کاربری با این مشخصات پیدا نشد." , superUserKeyboard);
                         superUser.State = SuperUserState.Dashboard;
                         await _db.SaveChangesAsync();
                         break;
@@ -367,7 +367,7 @@ public class TelegramController : ControllerBase
                         case "⬅️ بازگشت به داشبورد":
                             superUser.State = SuperUserState.Dashboard;
                             await _db.SaveChangesAsync();
-                            await _telegram.SendTextMessageAsync(chatId, "بازگشت به داشبورد");
+                            await _telegram.SendTextMessageAsync(chatId, "بازگشت به داشبورد" , superUserKeyboard);
                             break;
 
                         default:
