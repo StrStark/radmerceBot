@@ -37,9 +37,12 @@ public class TelegramController : ControllerBase
     public async Task<IActionResult> Webhook([FromBody] Update update)
     {
         Console.WriteLine("got the webhook");
-        
+        if (update.CallbackQuery != null)
+        {
+            Console.WriteLine("Has Call Back");
+        }
 
-        if (update.Type is not UpdateType.Message or UpdateType.CallbackQuery )
+            if (update.Type is not UpdateType.Message or UpdateType.CallbackQuery )
             return Ok();
         var superUserKeyboard = new ReplyKeyboardMarkup(
         [
@@ -253,7 +256,7 @@ public class TelegramController : ControllerBase
                         case "🔍 جستجو در مخاطبین":
                             superUser.State = SuperUserState.SearchingContacts;
                             await _db.SaveChangesAsync();
-                            await _telegram.SendTextMessageAsync(chatId, "لطفاً شماره یا نام کاربر مورد نظر را وارد کنید:");
+                            await _telegram.SendTextMessageAsync(chatId, "لطفاً شماره یا نام کاربر مورد نظر را بدون صفر وارد کنید:" , new ReplyKeyboardMarkup());
                             break;
 
                         case "📤 ارسال پیامک":
@@ -322,7 +325,6 @@ public class TelegramController : ControllerBase
                         await _telegram.SendTextMessageAsync(chatId, userInfo, inlineKeyboard);
                     }
 
-                    // بعد از نمایش، برگرد به داشبورد سوپر یوزر
                     superUser.State = SuperUserState.Dashboard;
                     await _db.SaveChangesAsync();
                     break;
@@ -640,6 +642,24 @@ public class TelegramController : ControllerBase
 
                     superUser.State = SuperUserState.Dashboard;
                     await _db.SaveChangesAsync();
+                    break;
+
+                case SuperUserState.SendingSms_Single_WaitingForMessage:
+                    string Text = message.Text?.Trim();
+                    if (string.IsNullOrEmpty(Text))
+                        break;
+
+
+                    var Users = await _db.Users.FirstOrDefaultAsync(u => u.PhoneNumber == superUser.TempData);
+                    if (Users != null)
+                    {
+                        await _smsService.SendOtp(Users.PhoneNumber!, Text, HttpContext.RequestAborted);
+                    }
+
+                    await _telegram.SendTextMessageAsync(chatId, "پیامک با موفقیت ارسال شد.");
+                    superUser.State = SuperUserState.Dashboard;
+                    await _db.SaveChangesAsync();
+
                     break;
             }
             return Ok();

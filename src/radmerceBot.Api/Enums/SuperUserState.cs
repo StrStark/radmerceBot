@@ -9,7 +9,7 @@ public enum SuperUserState
     ExportingCsv,
     SearchingContacts,
     SendingSms,
-    SendingSms_Menu,   
+    SendingSms_Menu,
     SendingSms_Single_WaitingForPhone,
     SendingSms_Single_WaitingForMessage,
     SendingSms_Bulk_WaitingForFile,
