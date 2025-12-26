@@ -904,13 +904,20 @@ public class TelegramController : ControllerBase
                         };
                         _db.RequestedConsultations.Add(consultation);
 
-                        user.Step = UserStep.RequestedConsultation;
+                        user.Step = UserStep.Registered; // بازگشت به حالت ثبت‌نام شده
                         await _db.SaveChangesAsync();
-
+                        var freeVideoKeyboards = new ReplyKeyboardMarkup(
+                            new[]
+                            {
+                                 new KeyboardButton("🎥 مشاهده ویدیوهای رایگان")
+                            })
+                        {
+                            ResizeKeyboard = true
+                        };
                         await _telegram.SendTextMessageAsync(
                             chatId,
                             "✅ درخواست شما ثبت شد! به زودی با شما تماس خواهیم گرفت."
-                        );
+                         , freeVideoKeyboards);
                         break;
 
                     case "❌ نه، بعداً":
