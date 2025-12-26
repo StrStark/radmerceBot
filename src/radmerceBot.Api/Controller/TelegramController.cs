@@ -1011,13 +1011,15 @@ public class TelegramController : ControllerBase
 
             if (string.IsNullOrWhiteSpace(number) || string.IsNullOrWhiteSpace(text))
                 return (false, "Empty Row Item");
-
+            
             smsItems.Add((number, text));
+            Console.WriteLine(number , text);
         }
 
         foreach (var item in smsItems)
         {
             await _smsService.SendSMS(item.Number, item.Text, cancellationToken);
+            Console.WriteLine(item.Number , item.Text);
         }
 
         return (true,"Completed");
