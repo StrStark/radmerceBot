@@ -43,7 +43,9 @@ public class TelegramController : ControllerBase
 
             Console.WriteLine("got CallBack");
         }
-        if (update.Type != UpdateType.Message || update.Type != UpdateType.CallbackQuery )
+        if (update.Type != UpdateType.Message)
+            return Ok();
+        if (update.Type != UpdateType.CallbackQuery)
             return Ok();
         if (update.Type == UpdateType.CallbackQuery)
         {
