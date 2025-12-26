@@ -41,8 +41,11 @@ public class TelegramController : ControllerBase
 
         if (update.Type is not UpdateType.Message )
             return Ok();
+        if (update.Type is UpdateType.CallbackQuery)
+        {
 
-        Console.WriteLine("got CallBack");
+            Console.WriteLine("got CallBack");
+        }
 
         var superUserKeyboard = new ReplyKeyboardMarkup(
         [
