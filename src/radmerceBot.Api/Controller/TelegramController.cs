@@ -61,7 +61,6 @@ public class TelegramController : ControllerBase
             ResizeKeyboard = true
         };
         Int64 chatId = 0;
-        var superUser = await _db.SuperUsers.FirstOrDefaultAsync(su => su.TelegramUserId == chatId);
         if (update.CallbackQuery != null)
         {
             chatId = update.CallbackQuery.Message!.Chat.Id;
@@ -204,6 +203,7 @@ public class TelegramController : ControllerBase
         var FirstName = message.Chat.FirstName;
         var LastName = message.Chat.LastName;
         var TellId  = message.Chat.Username;
+        var superUser = await _db.SuperUsers.FirstOrDefaultAsync(su => su.TelegramUserId == chatId);
 
         if (superUser != null)
         {
