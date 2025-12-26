@@ -864,6 +864,7 @@ public class TelegramController : ControllerBase
                             "🎉 شما تمام ویدیوهای رایگان را مشاهده کردید!\nآیا مایل هستید دوره‌های پولی ما را خریداری کنید؟",
                             offerKeyboard
                         );
+                        return Ok();
                     }
 
                     var currentVideo = videos[index];
