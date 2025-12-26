@@ -60,8 +60,8 @@ public class TelegramController : ControllerBase
         {
             ResizeKeyboard = true
         };
-        var message = update.Message!;
-        var chatId = message.Chat.Id;
+        
+        var chatId = update.CallbackQuery.Message.Chat.Id;
         var superUser = await _db.SuperUsers.FirstOrDefaultAsync(su => su.TelegramUserId == chatId);
         if (update.CallbackQuery != null)
         {
@@ -112,6 +112,7 @@ public class TelegramController : ControllerBase
             }
             else if (data.StartsWith("delete:"))
             {
+                Console.WriteLine("Deleting");
                 var userId = Guid.Parse(data.Split(':')[1]);
                 var targetUser = await _db.Users.FirstOrDefaultAsync(u => u.Id == userId);
 
@@ -198,6 +199,8 @@ public class TelegramController : ControllerBase
 
         if (update.Type != UpdateType.Message)
             return Ok();
+        var message = update.Message!;
+        chatId = message.Chat.Id;
         var FirstName = message.Chat.FirstName;
         var LastName = message.Chat.LastName;
         var TellId  = message.Chat.Username;
