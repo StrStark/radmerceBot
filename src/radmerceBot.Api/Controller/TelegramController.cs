@@ -60,10 +60,14 @@ public class TelegramController : ControllerBase
         {
             ResizeKeyboard = true
         };
+
+        SuperUser superUser;
+
         Int64 chatId = 0;
         if (update.CallbackQuery != null)
         {
             chatId = update.CallbackQuery.Message!.Chat.Id;
+            superUser = await _db.SuperUsers.FirstOrDefaultAsync(su => su.TelegramUserId == chatId);
             Console.WriteLine("got CallBack");
 
             var callbackQuery = update.CallbackQuery!;
@@ -203,7 +207,7 @@ public class TelegramController : ControllerBase
         var FirstName = message.Chat.FirstName;
         var LastName = message.Chat.LastName;
         var TellId  = message.Chat.Username;
-        var superUser = await _db.SuperUsers.FirstOrDefaultAsync(su => su.TelegramUserId == chatId);
+        superUser = await _db.SuperUsers.FirstOrDefaultAsync(su => su.TelegramUserId == chatId);
 
         if (superUser != null)
         {
