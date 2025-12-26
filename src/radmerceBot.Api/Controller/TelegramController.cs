@@ -41,6 +41,9 @@ public class TelegramController : ControllerBase
 
         if (update.Type is not UpdateType.Message )
             return Ok();
+
+        Console.WriteLine("got CallBack");
+
         var superUserKeyboard = new ReplyKeyboardMarkup(
         [
             [new KeyboardButton("🔍 جستجو در مخاطبین"), new KeyboardButton("📤 ارسال پیامک")],
