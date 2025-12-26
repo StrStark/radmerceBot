@@ -43,10 +43,7 @@ public class TelegramController : ControllerBase
 
             Console.WriteLine("got CallBack");
         }
-        if (update.Type != UpdateType.Message)
-            return Ok();
-        if (update.Type != UpdateType.CallbackQuery)
-            return Ok();
+
         if (update.Type == UpdateType.CallbackQuery)
         {
 
@@ -198,6 +195,9 @@ public class TelegramController : ControllerBase
                 await _telegram.SendTextMessageAsync(chatId, $"✅ ویدیوی با Order {video.Order} و عنوان '{video.Caption}' حذف شد.");
             }
         }
+
+        if (update.Type != UpdateType.Message)
+            return Ok();
         var FirstName = message.Chat.FirstName;
         var LastName = message.Chat.LastName;
         var TellId  = message.Chat.Username;
