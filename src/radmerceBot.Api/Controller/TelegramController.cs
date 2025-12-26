@@ -38,14 +38,14 @@ public class TelegramController : ControllerBase
     {
         Console.WriteLine("got the webhook");
 
+
+        if (update.Type is not UpdateType.Message or UpdateType.CallbackQuery )
+            return Ok();
         if (update.Type is UpdateType.CallbackQuery)
         {
 
             Console.WriteLine("got CallBack");
         }
-        if (update.Type is not UpdateType.Message )
-            return Ok();
-
 
         var superUserKeyboard = new ReplyKeyboardMarkup(
         [
