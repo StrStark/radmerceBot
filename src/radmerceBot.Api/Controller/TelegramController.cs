@@ -56,6 +56,8 @@ public class TelegramController : ControllerBase
         var superUser = await _db.SuperUsers.FirstOrDefaultAsync(su => su.TelegramUserId == chatId);
         if (update.CallbackQuery != null)
         {
+            Console.WriteLine("got CallBack");
+
             var callbackQuery = update.CallbackQuery!;
             var data = callbackQuery.Data!;
             Console.WriteLine(callbackQuery);
