@@ -61,7 +61,8 @@ public class TelegramController : ControllerBase
         {
             var callbackQuery = update.CallbackQuery!;
             var data = callbackQuery.Data!;
-
+            Console.WriteLine(callbackQuery);
+            Console.WriteLine(data);
             if (data.StartsWith("bot:"))
             {
                 var userId = Guid.Parse(data.Split(':')[1]);
