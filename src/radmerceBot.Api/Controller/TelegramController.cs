@@ -353,7 +353,7 @@ public class TelegramController : ControllerBase
                                 InlineKeyboardButton.WithCallbackData("📩 ارسال پیامک", $"sms:{u.Id}"),
                                 InlineKeyboardButton.WithCallbackData("❌ حذف مخاطب", $"delete:{u.Id}")
 
-                            }
+                            },
                         });
 
                         string userInfo = $"نام: {u.FullName}\nشماره: {u.PhoneNumber}\nوضعیت احراز هویت: {(u.IsPhoneVerified ? "✅" : "❌")}";
@@ -362,11 +362,7 @@ public class TelegramController : ControllerBase
 
                     superUser.State = SuperUserState.Dashboard;
                     await _db.SaveChangesAsync();
-                    break;
-
-                case SuperUserState.SendingSms:
-
-                   
+                    break;              
 
                 case SuperUserState.SendingSms_Menu:
                     switch (message.Text)
@@ -390,7 +386,17 @@ public class TelegramController : ControllerBase
                             break;
 
                         default:
-                            await _telegram.SendTextMessageAsync(chatId, "گزینه نامعتبر است، دوباره انتخاب کنید.");
+                            var smsMenuKeyboard = new ReplyKeyboardMarkup(
+                           new[]
+                           {
+                                 new KeyboardButton("📨 ارسال پیامک تکی"),
+                                 new KeyboardButton("📂 ارسال پیامک گروهی (CSV)"),
+                                 new KeyboardButton("⬅️ بازگشت به داشبورد")
+                           })
+                            {
+                                ResizeKeyboard = true
+                            };
+                            await _telegram.SendTextMessageAsync(chatId, "گزینه نامعتبر است، دوباره انتخاب کنید." , smsMenuKeyboard);
                             break;
                     }
                     break;
@@ -510,8 +516,17 @@ public class TelegramController : ControllerBase
 
 
                         default:
+                            var manageVideosKeyboardawd = new ReplyKeyboardMarkup(
+                               [
+                                   [new KeyboardButton("📋 مشاهده ویدیوها"), new KeyboardButton("➕ افزودن ویدیو")],
+                                    [new KeyboardButton("⬅️ بازگشت به داشبورد")]
+                               ]
+                           )
+                            {
+                                ResizeKeyboard = true
+                            };
                             await _telegram.SendTextMessageAsync(chatId,
-                                "گزینه نامعتبر است.\nاز دکمه‌های زیر استفاده کنید:");
+                                "گزینه نامعتبر است.\nاز دکمه‌های زیر استفاده کنید:" , manageVideosKeyboardawd);
                             break;
                     }
                     break;
@@ -751,7 +766,7 @@ public class TelegramController : ControllerBase
                 await _db.SaveChangesAsync();
                 break;
 
-            case UserStep.WaitingForPhone:
+            case UserStep.WaitingForPhone: // add checking it the way they sent there number is the right way ... 
                 if (message.Contact == null || message.Contact.UserId != chatId)
                 {
                     await _telegram.SendTextMessageAsync(
@@ -890,7 +905,15 @@ public class TelegramController : ControllerBase
                 }
                 else
                 {
-                    await _telegram.SendTextMessageAsync(chatId, "پیام نامعتبر، لطفا از دکمه ها برای ارسال پیام استفاده کنید...");
+                    var freeVideoKeyboardawd = new ReplyKeyboardMarkup(
+                    new[]
+                    {
+                        new KeyboardButton("🎥 مشاهده ویدیوهای رایگان")
+                    })
+                    {
+                        ResizeKeyboard = true
+                    };
+                    await _telegram.SendTextMessageAsync(chatId, "پیام نامعتبر، لطفا از دکمه ها برای ارسال پیام استفاده کنید..." , freeVideoKeyboardawd);
                 }
                 break;
 
@@ -947,7 +970,7 @@ public class TelegramController : ControllerBase
                         await _telegram.SendTextMessageAsync(
                             chatId,
                             "لطفاً یکی از گزینه‌های موجود را انتخاب کنید."
-                        );
+                        , freeVideoKeyboard);
                         break;
                 }
                 break;
