@@ -60,11 +60,11 @@ public class TelegramController : ControllerBase
         {
             ResizeKeyboard = true
         };
-        
-        var chatId = update.CallbackQuery.Message.Chat.Id;
+        Int64 chatId = 0;
         var superUser = await _db.SuperUsers.FirstOrDefaultAsync(su => su.TelegramUserId == chatId);
         if (update.CallbackQuery != null)
         {
+            chatId = update.CallbackQuery.Message!.Chat.Id;
             Console.WriteLine("got CallBack");
 
             var callbackQuery = update.CallbackQuery!;
