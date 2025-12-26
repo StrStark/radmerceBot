@@ -967,6 +967,14 @@ public class TelegramController : ControllerBase
                         break;
 
                     default:
+                        freeVideoKeyboard = new ReplyKeyboardMarkup(
+                       new[]
+                       {
+                             new KeyboardButton("🎥 مشاهده ویدیوهای رایگان")
+                       })
+                        {
+                            ResizeKeyboard = true
+                        };
                         await _telegram.SendTextMessageAsync(
                             chatId,
                             "لطفاً یکی از گزینه‌های موجود را انتخاب کنید."
