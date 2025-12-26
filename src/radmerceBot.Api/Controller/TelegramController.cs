@@ -4,11 +4,14 @@ using radmerceBot.Api.Data;
 using radmerceBot.Api.Enums;
 using radmerceBot.Api.Interfaces;
 using radmerceBot.Api.Models;
+using radmerceBot.Api.Services;
 using radmerceBot.Api.TelegramService;
 using radmerceBot.Core.Models;
 using System.IO;
+using System.IO.Pipes;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
@@ -415,14 +418,14 @@ public class TelegramController : ControllerBase
 
                         var fileStream = await _telegram.GetFileAsync(message.Document.FileId);
 
-                        bool isValid = await BulkSmsProcessor(fileStream);
+                        var isValid = await BulkSmsProcessor(fileStream , cancellationToken : HttpContext.RequestAborted);
 
                         superUser.State = SuperUserState.Dashboard;
                         await _db.SaveChangesAsync();
-                        if (!isValid)
+                        if (!isValid.Item1)
                         {
                             await _telegram.SendTextMessageAsync(chatId,
-                                "❌ فرمت اطلاعات داخل فایل CSV اشتباه است. لطفاً بررسی و اصلاح کنید.");
+                                $"❌ اشتباهی رخ داده است\n\n{isValid.Item2}");
                         }
                         else
                         {
@@ -979,9 +982,45 @@ public class TelegramController : ControllerBase
         var pattern = @"^989\d{9}$";
         return Regex.IsMatch(input, pattern);
     }
-    async Task<bool> BulkSmsProcessor(Stream File)
+    async Task<(bool ,string)> BulkSmsProcessor(Stream File , CancellationToken cancellationToken)
     {
-        return true;
+        using var reader = new StreamReader(File, Encoding.UTF8);
+
+        string? headerLine = await reader.ReadLineAsync();
+        if (headerLine == null)
+            return (false , "");
+
+        var expectedHeader = "Number,Text";
+        if (!string.Equals(headerLine.Trim(), expectedHeader, StringComparison.OrdinalIgnoreCase))
+            return (false, "Format Not Correct!");
+
+        var smsItems = new List<(string Number, string Text)>();
+
+        while (!reader.EndOfStream)
+        {
+            var line = await reader.ReadLineAsync();
+            if (string.IsNullOrWhiteSpace(line))
+                continue;
+
+            var parts = line.Split(',', 2); // فقط به دو بخش تقسیم شود
+            if (parts.Length != 2)
+                return (false, "Format Not Correct!");
+
+            var number = parts[0].Trim();
+            var text = parts[1].Trim();
+
+            if (string.IsNullOrWhiteSpace(number) || string.IsNullOrWhiteSpace(text))
+                return (false, "Empty Row Item");
+
+            smsItems.Add((number, text));
+        }
+
+        foreach (var item in smsItems)
+        {
+            await _smsService.SendSMS(item.Number, item.Text, cancellationToken);
+        }
+
+        return (true,"Completed");
     }
 
 }
