@@ -470,6 +470,21 @@ public class TelegramController : ControllerBase
                                     replyMarkup: inlineKeyboard
                                 );
                             }
+                            var manageVideosKeyboard = new ReplyKeyboardMarkup(
+                                [
+                                    [new KeyboardButton("📋 مشاهده ویدیوها"), new KeyboardButton("➕ افزودن ویدیو")],
+                                    [new KeyboardButton("⬅️ بازگشت به داشبورد")]
+                                ]
+                            )
+                            {
+                                ResizeKeyboard = true
+                            };
+
+                            await _telegram.SendTextMessageAsync(
+                                chatId,
+                                "لیست ویدیوها (یکی را انتخاب کنید):",
+                                manageVideosKeyboard
+                            );
                             break;
 
 
