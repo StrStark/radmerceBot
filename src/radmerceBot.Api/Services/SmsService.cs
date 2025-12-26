@@ -28,4 +28,16 @@ public class SmsService : ISmsService
             mobile: phone
         );
     }
+    public async Task SendSMS(
+            string phone,
+            string Message,
+            CancellationToken cancellationToken)
+    {
+
+        await _ippanelService.SendSmsAsync(
+            fromNumber: _fromNumber,
+            message: Message,
+            mobile: phone
+        );
+    }
 }

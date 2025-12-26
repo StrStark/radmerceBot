@@ -36,19 +36,6 @@ public class TelegramController : ControllerBase
     [HttpPost("webhook")]
     public async Task<IActionResult> Webhook([FromBody] Update update)
     {
-        Console.WriteLine("got the webhook");
-
-        if (update.Type == UpdateType.CallbackQuery)
-        {
-
-            Console.WriteLine("got CallBack");
-        }
-
-        if (update.Type == UpdateType.CallbackQuery)
-        {
-
-            Console.WriteLine("got CallBack");
-        }
 
         var superUserKeyboard = new ReplyKeyboardMarkup(
         [
@@ -658,7 +645,7 @@ public class TelegramController : ControllerBase
                     var TargetUser = await _db.Users.FirstOrDefaultAsync(u => u.Id == pending.TargetUserId);
                     if (TargetUser != null)
                     {
-                        await _smsService.SendOtp(TargetUser.PhoneNumber, smsText, HttpContext.RequestAborted);
+                        await _smsService.SendSMS(TargetUser.PhoneNumber, smsText, HttpContext.RequestAborted);
                     }
 
                     await _telegram.SendTextMessageAsync(chatId, "پیامک با موفقیت ارسال شد.");
@@ -695,7 +682,7 @@ public class TelegramController : ControllerBase
                     if (string.IsNullOrEmpty(Text))
                         break;
 
-                    await _smsService.SendOtp($"{superUser.TempData}", Text, HttpContext.RequestAborted);
+                    await _smsService.SendSMS($"{superUser.TempData}", Text, HttpContext.RequestAborted);
                     
 
                     await _telegram.SendTextMessageAsync(chatId, "پیامک با موفقیت ارسال شد." , superUserKeyboard);

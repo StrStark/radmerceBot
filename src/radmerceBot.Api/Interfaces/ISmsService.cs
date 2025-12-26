@@ -7,4 +7,5 @@ namespace radmerceBot.Api.Interfaces;
 public interface ISmsService
 {
     Task SendOtp(string phone, string code, CancellationToken cancellationToken);
+    Task SendSMS(string phone, string Message, CancellationToken cancellationToken);
 }
