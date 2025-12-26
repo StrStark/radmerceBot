@@ -39,7 +39,7 @@ public class TelegramController : ControllerBase
         Console.WriteLine("got the webhook");
 
 
-        if (update.Type is not UpdateType.Message or UpdateType.CallbackQuery )
+        if (update.Type != UpdateType.Message || update.Type != UpdateType.CallbackQuery )
             return Ok();
         if (update.Type is UpdateType.CallbackQuery)
         {
