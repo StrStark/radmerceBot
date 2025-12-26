@@ -37,10 +37,7 @@ public class TelegramController : ControllerBase
     public async Task<IActionResult> Webhook([FromBody] Update update)
     {
         Console.WriteLine("got the webhook");
-        if (update.CallbackQuery != null)
-        {
-            Console.WriteLine("Has Call Back");
-        }
+        
 
             if (update.Type is not UpdateType.Message or UpdateType.CallbackQuery )
             return Ok();
@@ -57,7 +54,7 @@ public class TelegramController : ControllerBase
         var message = update.Message!;
         var chatId = message.Chat.Id;
         var superUser = await _db.SuperUsers.FirstOrDefaultAsync(su => su.TelegramUserId == chatId);
-        if (update.Type == UpdateType.CallbackQuery)
+        if (update.CallbackQuery != null)
         {
             var callbackQuery = update.CallbackQuery!;
             var data = callbackQuery.Data!;
@@ -79,7 +76,7 @@ public class TelegramController : ControllerBase
                 );
                 superUser.State = SuperUserState.SendingMessageToUser;
                 await _db.SaveChangesAsync();
-                
+
             }
             else if (data.StartsWith("sms:"))
             {
