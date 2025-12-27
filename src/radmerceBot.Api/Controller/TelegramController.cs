@@ -377,13 +377,15 @@ public class TelegramController : ControllerBase
                             break;
 
                         default:
-                            var smsMenuKeyboard = new ReplyKeyboardMarkup(
-                           new[]
-                           {
+                            var smsMenuKeyboard = new ReplyKeyboardMarkup([
+                           [
                                  new KeyboardButton("📨 ارسال پیامک تکی"),
                                  new KeyboardButton("📂 ارسال پیامک گروهی (CSV)"),
-                                 new KeyboardButton("⬅️ بازگشت به داشبورد")
-                           })
+                                 
+                           ],
+                           [
+                               new KeyboardButton("⬅️ بازگشت به داشبورد")
+                           ]])
                             {
                                 ResizeKeyboard = true
                             };
