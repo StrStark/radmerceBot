@@ -77,7 +77,7 @@ public class TelegramController : ControllerBase
                 await _db.SaveChangesAsync();
                 await _telegram.SendTextMessageAsync(
                     chatId,
-                    $"پیام شما برای کاربر انتخاب شده آماده است. لطفاً متن پیام را وارد کنید:"
+                    BotTexts.InBotSendingMessageUserSelectedTextReq 
                 );
                 superUser.State = SuperUserState.SendingMessageToUser;
                 await _db.SaveChangesAsync();
@@ -98,7 +98,7 @@ public class TelegramController : ControllerBase
 
                 await _telegram.SendTextMessageAsync(
                     chatId,
-                    "پیامک شما برای کاربر انتخاب شده آماده است. لطفاً متن پیامک را وارد کنید:"
+                    BotTexts.SmsSendingMessageUserSelectedTextReq 
                 );
 
                 superUser.State = SuperUserState.SendingSmsToUser;
@@ -112,11 +112,11 @@ public class TelegramController : ControllerBase
 
                 if (targetUser == null)
                 {
-                    await _telegram.SendTextMessageAsync(chatId, "کاربر مورد نظر پیدا نشد.");
+                    await _telegram.SendTextMessageAsync(chatId, BotTexts.UserNotFround);
                 }
                 _db.Users.Remove(targetUser);
                 await _db.SaveChangesAsync();
-                await _telegram.SendTextMessageAsync(chatId, $"کاربر {targetUser.FullName} با موفقیت حذف شد.");
+                await _telegram.SendTextMessageAsync(chatId, BotTexts.UserDeletedSuccessfully(targetUser.FullName!));
 
                 superUser.State = SuperUserState.Dashboard;
                 await _db.SaveChangesAsync();
@@ -128,7 +128,7 @@ public class TelegramController : ControllerBase
                 var videos = await _db.FreeVideos.OrderBy(v => v.Order).ToListAsync();
                 if (!videos.Any())
                 {
-                    await _telegram.SendTextMessageAsync(chatId, "هنوز هیچ ویدیویی اضافه نشده است.");
+                    await _telegram.SendTextMessageAsync(chatId, BotTexts.ThereIsNoVideo);
                 }
                 if (User.CurrentFreeVideoIndex >= videos.Count)
                 {
@@ -147,8 +147,8 @@ public class TelegramController : ControllerBase
                     };
 
                     await _telegram.SendTextMessageAsync(
-                        chatId,
-                        "🎉 شما تمام ویدیوهای رایگان را مشاهده کردید!\nآیا مایل هستید دوره‌های پولی ما را خریداری کنید؟",
+                        chatId
+                        ,BotTexts.WatchedAllVideos,
                         offerKeyboard
                     );
                 }
@@ -182,7 +182,7 @@ public class TelegramController : ControllerBase
                 var video = await _db.FreeVideos.FirstOrDefaultAsync(v => v.Id == videoId);
                 if (video == null)
                 {
-                    await _telegram.SendTextMessageAsync(chatId, "ویدیویی با این شناسه پیدا نشد.");
+                    await _telegram.SendTextMessageAsync(chatId, BotTexts.NoVideoFoundWithThisId);
                 }
 
                 _db.FreeVideos.Remove(video);
@@ -191,7 +191,7 @@ public class TelegramController : ControllerBase
                 {
                     await _telegram.DeleteMessageAsync(callbackQuery.Message.Chat.Id, callbackQuery.Message.MessageId);
                 }
-                await _telegram.SendTextMessageAsync(chatId, $"✅ ویدیوی با Order {video.Order} و عنوان '{video.Caption}' حذف شد.");
+                await _telegram.SendTextMessageAsync(chatId, BotTexts.VideoWithCaptionOrderDeleted(video.Order.ToString() , video.Caption!));
             }
         }
 
@@ -212,8 +212,8 @@ public class TelegramController : ControllerBase
 
 
                     await _telegram.SendTextMessageAsync(
-                        chatId,
-                        "سلام SuperUser 👋\nبه پنل مدیریت ربات خوش آمدید. یکی از گزینه‌ها را انتخاب کنید:",
+                        chatId
+                        , BotTexts.SuperUserWellcome,
                         superUserKeyboard
                     );
 
@@ -227,14 +227,14 @@ public class TelegramController : ControllerBase
                         case "📣 ارسال پیام به کاربران فعال":
                             superUser.State = SuperUserState.SendingMessageToActiveUsers;
                             await _db.SaveChangesAsync();
-                            await _telegram.SendTextMessageAsync(chatId, "لطفاً متن پیام عمومی را وارد کنید:");
+                            await _telegram.SendTextMessageAsync(chatId, BotTexts.SelectPublicSendingMessageText);
                             break;
                         case "💾 خروجی CSV از کاربران و درخواست‌ها":
                             {
                                 superUser.State = SuperUserState.ExportingCsv;
                                 await _db.SaveChangesAsync();
 
-                                await _telegram.SendTextMessageAsync(chatId, "در حال آماده‌سازی فایل CSV ...");
+                                await _telegram.SendTextMessageAsync(chatId, BotTexts.CsvFileGenerating);
 
                                 var users = await _db.Users.ToListAsync();
                                 var usersCsv = new StringBuilder();
@@ -270,7 +270,7 @@ public class TelegramController : ControllerBase
                         case "🔍 جستجو در مخاطبین":
                             superUser.State = SuperUserState.SearchingContacts;
                             await _db.SaveChangesAsync();
-                            await _telegram.SendTextMessageAsync(chatId, "لطفاً شماره یا نام کاربر مورد نظر را بدون صفر وارد کنید:" , new ReplyKeyboardMarkup());
+                            await _telegram.SendTextMessageAsync(chatId, BotTexts.MobilePhoneNumberSendingRequest , new ReplyKeyboardMarkup());
                             break;
 
                         case "📤 ارسال پیامک":
@@ -287,7 +287,7 @@ public class TelegramController : ControllerBase
 
                             await _telegram.SendTextMessageAsync(
                                 chatId,
-                                "نوع ارسال پیامک را انتخاب کنید:",
+                                BotTexts.SmsSendingTypeSelection,
                                 smsMenuKeyboard
                             );
 
@@ -311,14 +311,14 @@ public class TelegramController : ControllerBase
 
                             await _telegram.SendTextMessageAsync(
                                 chatId,
-                                "لیست ویدیوها (یکی را انتخاب کنید):",
+                                BotTexts.VideosButtonClicked,
                                 manageVideosKeyboard
                             );
                             break;
 
 
                         default:
-                            await _telegram.SendTextMessageAsync(chatId, "لطفاً یکی از گزینه‌های موجود را انتخاب کنید." , superUserKeyboard);
+                            await _telegram.SendTextMessageAsync(chatId, BotTexts.PleaseSelectOneOfTheAvalableButtons , superUserKeyboard);
                             break;
                     }
                     break;
@@ -332,7 +332,7 @@ public class TelegramController : ControllerBase
 
                     if (!matchedUsers.Any())
                     {
-                        await _telegram.SendTextMessageAsync(chatId, "هیچ کاربری با این مشخصات پیدا نشد." , superUserKeyboard);
+                        await _telegram.SendTextMessageAsync(chatId, BotTexts.NoUserFoundWithThisDescription , superUserKeyboard);
                         superUser.State = SuperUserState.Dashboard;
                         await _db.SaveChangesAsync();
                         break;
@@ -347,7 +347,7 @@ public class TelegramController : ControllerBase
                             [InlineKeyboardButton.WithCallbackData("❌ حذف مخاطب", $"delete:{u.Id}")]
                         ]);
 
-                        string userInfo = $"نام: {u.FullName}\nشماره: {u.PhoneNumber}\nوضعیت احراز هویت: {(u.IsPhoneVerified ? "✅" : "❌")}";
+                        string userInfo = BotTexts.UserInformationTextSchema(u.FullName , u.PhoneNumber , u.IsPhoneVerified);
                         await _telegram.SendTextMessageAsync(chatId, userInfo, inlineKeyboard);
                     }
 
@@ -361,19 +361,19 @@ public class TelegramController : ControllerBase
                         case "📨 ارسال پیامک تکی":
                             superUser.State = SuperUserState.SendingSms_Single_WaitingForPhone;
                             await _db.SaveChangesAsync();
-                            await _telegram.SendTextMessageAsync(chatId, "شماره مقصد را وارد کنید:");
+                            await _telegram.SendTextMessageAsync(chatId, BotTexts.EnterDestinationNumber);
                             break;
 
                         case "📂 ارسال پیامک گروهی (CSV)":
                             superUser.State = SuperUserState.SendingSms_Bulk_WaitingForFile;
                             await _db.SaveChangesAsync();
-                            await _telegram.SendTextMessageAsync(chatId, "لطفاً فایل CSV را ارسال کنید:");
+                            await _telegram.SendTextMessageAsync(chatId, BotTexts.SendCsvFile);
                             break;
 
                         case "⬅️ بازگشت به داشبورد":
                             superUser.State = SuperUserState.Dashboard;
                             await _db.SaveChangesAsync();
-                            await _telegram.SendTextMessageAsync(chatId, "بازگشت به داشبورد" , superUserKeyboard);
+                            await _telegram.SendTextMessageAsync(chatId, BotTexts.ReturnToDashboard, superUserKeyboard);
                             break;
 
                         default:
@@ -387,7 +387,7 @@ public class TelegramController : ControllerBase
                             {
                                 ResizeKeyboard = true
                             };
-                            await _telegram.SendTextMessageAsync(chatId, "گزینه نامعتبر است، دوباره انتخاب کنید." , smsMenuKeyboard);
+                            await _telegram.SendTextMessageAsync(chatId, BotTexts.PleaseSelectOneOfTheAvalableButtons , smsMenuKeyboard);
                             break;
                     }
                     break;
@@ -398,11 +398,11 @@ public class TelegramController : ControllerBase
                         superUser.TempData = message.Text.Trim();
                         superUser.State = SuperUserState.SendingSms_Single_WaitingForMessage;
                         await _db.SaveChangesAsync();
-                        await _telegram.SendTextMessageAsync(chatId, "متن پیام را وارد کنید:");
+                        await _telegram.SendTextMessageAsync(chatId, BotTexts.EnterSmsText);
                     }
                     else
                     {
-                        await _telegram.SendTextMessageAsync(chatId, "شماره معتبر وارد کنید.");
+                        await _telegram.SendTextMessageAsync(chatId, BotTexts.EnterValidNumber);
                     }
                     break;
 
@@ -413,7 +413,7 @@ public class TelegramController : ControllerBase
                         if (!fileName.EndsWith(".csv", StringComparison.OrdinalIgnoreCase))
                         {
                             await _telegram.SendTextMessageAsync(chatId,
-                                "فرمت نامعتبر است. فقط فایل CSV ارسال کنید.");
+                                BotTexts.WrongCsvFileFormat);
                             break;
                         }
 
@@ -426,18 +426,17 @@ public class TelegramController : ControllerBase
                         if (!isValid.Item1)
                         {
                             await _telegram.SendTextMessageAsync(chatId,
-                                $"❌ اشتباهی رخ داده است\n\n{isValid.Item2}");
+                                BotTexts.BulkSmsSendingSomthingWentWrong(isValid.Item2));
                         }
                         else
                         {
-                            await _telegram.SendTextMessageAsync(chatId,
-                                "✅ فایل CSV دریافت و پردازش شد.\nپیامک‌ها در حال ارسال هستند...");
+                            await _telegram.SendTextMessageAsync(chatId, BotTexts.BuilSmsProssecedSending);
                         }
                         
                     }
                     else
                     {
-                        await _telegram.SendTextMessageAsync(chatId, "لطفاً یک فایل CSV ارسال کنید:");
+                        await _telegram.SendTextMessageAsync(chatId, BotTexts.SendCsvFile);
                     }
                     break;
 
@@ -451,7 +450,7 @@ public class TelegramController : ControllerBase
 
                             if (!videos.Any())
                             {
-                                await _telegram.SendTextMessageAsync(chatId, "هنوز هیچ ویدیویی اضافه نشده است.");
+                                await _telegram.SendTextMessageAsync(chatId, BotTexts.ThereIsNoVideo);
                                 break;
                             }
 
@@ -482,8 +481,8 @@ public class TelegramController : ControllerBase
                             };
 
                             await _telegram.SendTextMessageAsync(
-                                chatId,
-                                "لیست ویدیوها (یکی را انتخاب کنید):",
+                                chatId
+                                ,BotTexts.VideoListChooseOne,
                                 manageVideosKeyboard
                             );
                             break;
@@ -494,7 +493,7 @@ public class TelegramController : ControllerBase
                             await _db.SaveChangesAsync();
 
                             await _telegram.SendTextMessageAsync(chatId,
-                                "لطفاً ویدیوی مورد نظر را ارسال کنید:");
+                                BotTexts.SendDesiredVideo);
                             break;
 
 
@@ -502,7 +501,7 @@ public class TelegramController : ControllerBase
                             superUser.State = SuperUserState.Dashboard;
                             await _db.SaveChangesAsync();
 
-                            await _telegram.SendTextMessageAsync(chatId, "بازگشت به داشبورد", superUserKeyboard);
+                            await _telegram.SendTextMessageAsync(chatId, BotTexts.ReturnToDashboard, superUserKeyboard);
                             break;
 
 
@@ -517,7 +516,7 @@ public class TelegramController : ControllerBase
                                 ResizeKeyboard = true
                             };
                             await _telegram.SendTextMessageAsync(chatId,
-                                "گزینه نامعتبر است.\nاز دکمه‌های زیر استفاده کنید:" , manageVideosKeyboardawd);
+                                BotTexts.PleaseSelectOneOfTheAvalableButtons , manageVideosKeyboardawd);
                             break;
                     }
                     break;
@@ -531,14 +530,14 @@ public class TelegramController : ControllerBase
 
                         await _telegram.SendTextMessageAsync(
                             chatId,
-                            "ویدیو دریافت شد.\nحالا کپشن ویدیو را ارسال کنید:"
+                            BotTexts.VedioReceavedSendCaption
                         );
                     }
                     else
                     {
                         await _telegram.SendTextMessageAsync(
                             chatId,
-                            "لطفا یک فایل ویدیو ارسال کنید.\nفرمت‌های معتبر: MP4 و ویدیوهای تلگرام."
+                            BotTexts.InvlidVideoFormat
                         );
                     }
                     break;
@@ -552,7 +551,7 @@ public class TelegramController : ControllerBase
                         {
 
                             await _telegram.SendTextMessageAsync(chatId,
-                                "خطا: فایل ویدیو پیدا نشد. لطفاً دوباره اقدام کنید.", superUserKeyboard);
+                                BotTexts.VideoFileNotFound, superUserKeyboard);
 
                             superUser.State = SuperUserState.Dashboard;
                             await _db.SaveChangesAsync();
@@ -578,7 +577,7 @@ public class TelegramController : ControllerBase
 
                         await _telegram.SendTextMessageAsync(
                             chatId,
-                            $"ویدیو ذخیره شد.\nOrder: {order}\n\nبرای مدیریت ویدیوها دکمه 🎥 ویدیوها را بزنید.",
+                            BotTexts.VideoRecivedManageButtonProvided,
                             superUserKeyboard
                         );
                     }
@@ -586,7 +585,7 @@ public class TelegramController : ControllerBase
                     {
                         await _telegram.SendTextMessageAsync(
                             chatId,
-                            "کپشن معتبر وارد کنید.\nکپشن نمی‌تواند خالی باشد."
+                            BotTexts.CaptionCantBeEmpty
                         );
                     }
                     break;
@@ -603,7 +602,7 @@ public class TelegramController : ControllerBase
 
                     if (pendingMessage == null)
                     {
-                        await _telegram.SendTextMessageAsync(chatId, "هیچ پیام در انتظار یافت نشد.");
+                        await _telegram.SendTextMessageAsync(chatId, BotTexts.NoPendimgMessageFound);
                         superUser.State = SuperUserState.Dashboard;
                         await _db.SaveChangesAsync();
                         break;
@@ -619,7 +618,7 @@ public class TelegramController : ControllerBase
                         await _telegram.SendTextMessageAsync(targetUser.TelegramUserId, messageText);
                     }
 
-                    await _telegram.SendTextMessageAsync(chatId, "پیام با موفقیت ارسال شد.");
+                    await _telegram.SendTextMessageAsync(chatId, BotTexts.MessageSentSuccessfully);
                     superUser.State = SuperUserState.Dashboard;
                     await _db.SaveChangesAsync();
                     break;
@@ -636,7 +635,7 @@ public class TelegramController : ControllerBase
 
                     if (pending == null)
                     {
-                        await _telegram.SendTextMessageAsync(chatId, "هیچ پیامک در انتظار یافت نشد.");
+                        await _telegram.SendTextMessageAsync(chatId, BotTexts.NoPendingSmsFound);
                         superUser.State = SuperUserState.Dashboard;
                         await _db.SaveChangesAsync();
                         break;
@@ -652,7 +651,7 @@ public class TelegramController : ControllerBase
                         await _smsService.SendSMS(TargetUser.PhoneNumber, smsText, HttpContext.RequestAborted);
                     }
 
-                    await _telegram.SendTextMessageAsync(chatId, "پیامک با موفقیت ارسال شد.");
+                    await _telegram.SendTextMessageAsync(chatId, BotTexts.SmsSentSuccessfully);
                     superUser.State = SuperUserState.Dashboard;
                     await _db.SaveChangesAsync();
                     break;
@@ -670,11 +669,11 @@ public class TelegramController : ControllerBase
                             await _telegram.SendTextMessageAsync(u.TelegramUserId, $"📣\n{publicMessage}");
                         }
 
-                        await _telegram.SendTextMessageAsync(chatId, "پیام عمومی با موفقیت ارسال شد.");
+                        await _telegram.SendTextMessageAsync(chatId, BotTexts.PublicMessageSentSuccessfully);
                     }
                     else
                     {
-                        await _telegram.SendTextMessageAsync(chatId, "متن پیام نمی‌تواند خالی باشد.");
+                        await _telegram.SendTextMessageAsync(chatId, BotTexts.MessageTextCantBeEmpty);
                     }
 
                     superUser.State = SuperUserState.Dashboard;
@@ -689,7 +688,7 @@ public class TelegramController : ControllerBase
                     await _smsService.SendSMS($"{superUser.TempData}", Text, HttpContext.RequestAborted);
                     
 
-                    await _telegram.SendTextMessageAsync(chatId, "پیامک با موفقیت ارسال شد." , superUserKeyboard);
+                    await _telegram.SendTextMessageAsync(chatId, BotTexts.SmsSentSuccessfully , superUserKeyboard);
                     superUser.State = SuperUserState.Dashboard;
                     await _db.SaveChangesAsync();
 
@@ -717,8 +716,8 @@ public class TelegramController : ControllerBase
         {
             case UserStep.Start:
                 await _telegram.SendTextMessageAsync(
-                    chatId,
-                    "سلام 👋\nبه ربات آموزشی Radmerce خوش آمدید.\n\nلطفاً نام و نام خانوادگی خود را وارد کنید:"
+                    chatId,BotTexts.UserWellcomeMessage
+                    
                 );
 
                 user.Step = UserStep.WaitingForFullName;
@@ -730,7 +729,7 @@ public class TelegramController : ControllerBase
                 {
                     await _telegram.SendTextMessageAsync(
                         chatId,
-                        "لطفاً نام و نام خانوادگی خود را به صورت متنی ارسال کنید."
+                        BotTexts.PleaaseSendNameAndFamily
                     );
                     break;
                 }
@@ -749,7 +748,7 @@ public class TelegramController : ControllerBase
 
                 await _telegram.SendTextMessageAsync(
                     chatId,
-                    $"ممنون {user.FullName} 🌱\nحالا لطفاً شماره تلفن خود را ارسال کنید:",
+                    BotTexts.PLeaseSendYourPhoneNumber,
                     phoneKeyboard
                 );
 
@@ -760,14 +759,28 @@ public class TelegramController : ControllerBase
             case UserStep.WaitingForPhone: // add checking it the way they sent there number is the right way ... 
                 if (message.Contact == null || message.Contact.UserId != chatId)
                 {
-                    await _telegram.SendTextMessageAsync(
-                        chatId,
-                        "لطفاً شماره خود را فقط از طریق دکمه ارسال کنید."
-                    );
-                    break;
+                    if (!IsValidPhone(message.Text!.Trim()))
+                    {
+                        var phoneKeyboard23 = new ReplyKeyboardMarkup(
+                        new[]
+                        {
+                            KeyboardButton.WithRequestContact("📱 ارسال شماره من")
+                        })
+                        {
+                            ResizeKeyboard = true,
+                            OneTimeKeyboard = true
+                        };
+
+                        await _telegram.SendTextMessageAsync(
+                            chatId,
+                            BotTexts.PLeaseSendYourNumberOnlyUsingButton,
+                            phoneKeyboard23
+                        );
+                    }
+
                 }
 
-                user.PhoneNumber = message.Contact.PhoneNumber;
+                user.PhoneNumber = message.Contact!.PhoneNumber ?? message.Text!.Trim() ;
 
                 var otpCode = Random.Shared.Next(100000, 999999).ToString();
 
@@ -788,29 +801,97 @@ public class TelegramController : ControllerBase
                 user.Step = UserStep.WaitingForOtp;
                 await _db.SaveChangesAsync();
 
+                var phoneKeyboard2 = new ReplyKeyboardMarkup([
+                        [KeyboardButton.WithRequestContact("اصلاح شماره تماس")],
+                        [KeyboardButton.WithRequestContact("ارسال مجدد کد")]
+
+                    ])
+                {
+                    ResizeKeyboard = true,
+                    OneTimeKeyboard = true
+                };
+
+
                 await _telegram.SendTextMessageAsync(
                     chatId,
-                    "🔐 کد تایید برای شما ارسال شد.\nلطفاً کد را وارد کنید:"
+                    BotTexts.TokenSent , phoneKeyboard2
                 );
                 break;
 
             case UserStep.WaitingForOtp:
                 if (string.IsNullOrWhiteSpace(message.Text))
                     break;
+                if(message.Text == "اصلاح شماره تماس")
+                {
+                    var phoneKeyboard3 = new ReplyKeyboardMarkup(
+                    new[]
+                    {
+                        KeyboardButton.WithRequestContact("📱 ارسال شماره من")
+                    })
+                    {
+                        ResizeKeyboard = true,
+                        OneTimeKeyboard = true
+                    };
+                    await _telegram.SendTextMessageAsync(
+                        chatId,
+                        BotTexts.PLeaseSendYourPhoneNumber,
+                        phoneKeyboard3
+                    );
+                    user.Step = UserStep.WaitingForPhone;
+                    await _db.SaveChangesAsync();
+                    break;
+                }
+                else if (message.Text == "ارسال مجدد کد")
+                {
+                    otpCode = Random.Shared.Next(100000, 999999).ToString();
 
-                var otp = await _db.PhoneOtps
-                    .Where(x =>
-                        x.PhoneNumber == user.PhoneNumber &&
-                        x.Code == message.Text &&
-                        !x.IsUsed &&
-                        x.ExpireAt > DateTime.UtcNow)
-                    .FirstOrDefaultAsync();
+                    _db.PhoneOtps.Add(new PhoneOtp
+                    {
+                        PhoneNumber = user.PhoneNumber,
+                        Code = otpCode,
+                        ExpireAt = DateTime.UtcNow.AddMinutes(10),
+                        IsUsed = false
+                    });
+
+                    await _smsService.SendOtp(
+                        user.PhoneNumber,
+                        otpCode,
+                        HttpContext.RequestAborted
+                    );
+
+                    user.Step = UserStep.WaitingForOtp;
+                    await _db.SaveChangesAsync();
+
+                    phoneKeyboard2 = new ReplyKeyboardMarkup([
+                            [KeyboardButton.WithRequestContact("اصلاح شماره تماس")],
+                        [KeyboardButton.WithRequestContact("ارسال مجدد کد")]
+
+                        ])
+                    {
+                        ResizeKeyboard = true,
+                        OneTimeKeyboard = true
+                    };
+
+
+                    await _telegram.SendTextMessageAsync(
+                        chatId,
+                        BotTexts.TokenSent, phoneKeyboard2
+                    );
+                    break;
+                }
+                    var otp = await _db.PhoneOtps
+                        .Where(x =>
+                            x.PhoneNumber == user.PhoneNumber &&
+                            x.Code == message.Text &&
+                            !x.IsUsed &&
+                            x.ExpireAt > DateTime.UtcNow)
+                        .FirstOrDefaultAsync();
 
                 if (otp == null)
                 {
                     await _telegram.SendTextMessageAsync(
                         chatId,
-                        "❌ کد وارد شده نامعتبر یا منقضی شده است."
+                        BotTexts.InvalidToken
                     );
                     break;
                 }
@@ -833,7 +914,7 @@ public class TelegramController : ControllerBase
 
                 await _telegram.SendTextMessageAsync(
                     chatId,
-                    $"✅ احراز هویت با موفقیت انجام شد، {user.FullName}\n\nمی‌توانید ویدیوهای رایگان را مشاهده کنید:",
+                    BotTexts.AuthorizationCompleted,
                     freeVideoKeyboard
                 );
                 break;
@@ -847,7 +928,7 @@ public class TelegramController : ControllerBase
 
                     if (!videos.Any())
                     {
-                        await _telegram.SendTextMessageAsync(chatId, "هنوز هیچ ویدیویی اضافه نشده است.");
+                        await _telegram.SendTextMessageAsync(chatId, BotTexts.ThereIsNoVideo);
                         break;
                     }
 
@@ -870,7 +951,7 @@ public class TelegramController : ControllerBase
 
                         await _telegram.SendTextMessageAsync(
                             chatId,
-                            "🎉 شما تمام ویدیوهای رایگان را مشاهده کردید!\nآیا مایل هستید دوره‌های پولی ما را خریداری کنید؟",
+                            BotTexts.DoYouWantOurPaidCoursees,
                             offerKeyboard
                         );
                     }
@@ -906,7 +987,7 @@ public class TelegramController : ControllerBase
                     {
                         ResizeKeyboard = true
                     };
-                    await _telegram.SendTextMessageAsync(chatId, "پیام نامعتبر، لطفا از دکمه ها برای ارسال پیام استفاده کنید..." , freeVideoKeyboardawd);
+                    await _telegram.SendTextMessageAsync(chatId, BotTexts.PleaseSelectOneOfTheAvalableButtons , freeVideoKeyboardawd);
                 }
                 break;
 
@@ -936,7 +1017,7 @@ public class TelegramController : ControllerBase
                         };
                         await _telegram.SendTextMessageAsync(
                             chatId,
-                            "✅ درخواست شما ثبت شد! به زودی با شما تماس خواهیم گرفت."
+                            BotTexts.RequestSentForConsultaition
                          , freeVideoKeyboards);
                         break;
 
@@ -954,7 +1035,7 @@ public class TelegramController : ControllerBase
 
                         await _telegram.SendTextMessageAsync(
                             chatId,
-                            "باشه، هر زمان آماده بودید می‌توانید دوره‌های پولی را ببینید."
+                            BotTexts.ConsultationRequestRejected
                             , freeVideoKeyboard
                         );
                         break;
@@ -970,7 +1051,7 @@ public class TelegramController : ControllerBase
                         };
                         await _telegram.SendTextMessageAsync(
                             chatId,
-                            "لطفاً یکی از گزینه‌های موجود را انتخاب کنید."
+                            BotTexts.PleaseSelectOneOfTheAvalableButtons
                         , freeVideoKeyboard);
                         break;
                 }
