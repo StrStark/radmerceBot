@@ -152,25 +152,29 @@ public class TelegramController : ControllerBase
                         offerKeyboard
                     );
                 }
-                var currentVideo = videos[User.CurrentFreeVideoIndex];
-
-                var inlineKeyboard = new InlineKeyboardMarkup(new[]
+                else
                 {
+                    var currentVideo = videos[User.CurrentFreeVideoIndex];
+
+                    var inlineKeyboard = new InlineKeyboardMarkup(new[]
+                    {
                     new[]
                     {
                         InlineKeyboardButton.WithCallbackData("ویدیو بعدی", $"nextvideo:{User.Id}")
                     }
                 });
 
-                await _telegram.SendVideoByFileIdAsync(
-                    chatId: User.TelegramUserId,
-                    fileId: currentVideo.FileId!,
-                    caption: currentVideo.Caption,
-                    replyMarkup: inlineKeyboard
-                );
+                    await _telegram.SendVideoByFileIdAsync(
+                        chatId: User.TelegramUserId,
+                        fileId: currentVideo.FileId!,
+                        caption: currentVideo.Caption,
+                        replyMarkup: inlineKeyboard
+                    );
 
-                User.CurrentFreeVideoIndex++;
-                await _db.SaveChangesAsync();
+                    User.CurrentFreeVideoIndex++;
+                    await _db.SaveChangesAsync();
+                }
+                    
             }
             else if (data.StartsWith("delvideo:"))
             {
