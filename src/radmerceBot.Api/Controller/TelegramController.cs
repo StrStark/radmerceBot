@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using radmerceBot.Api.Data;
 using radmerceBot.Api.Enums;
+using radmerceBot.Api.Exceptions;
 using radmerceBot.Api.Interfaces;
 using radmerceBot.Api.Models;
 using radmerceBot.Api.Services;
@@ -1018,8 +1019,22 @@ public class TelegramController : ControllerBase
 
         foreach (var item in smsItems)
         {
-            await _smsService.SendSMS(item.Number, item.Text, cancellationToken);
-            Console.WriteLine(item.Number , item.Text);
+            try
+            {
+                await _smsService.SendSMS(item.Number, item.Text, cancellationToken);
+                Console.WriteLine(item.Number, item.Text);
+            }
+            catch (TooManyRequestsException ex)
+            {
+
+                return (false, "برای ارسال محدد 10 دقیقه صبر کنید");
+            }
+            catch  (Exception ex) 
+            {
+                return (false, ex.Message);
+
+            }
+
         }
 
         return (true,"Completed");

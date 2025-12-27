@@ -1,5 +1,7 @@
 ﻿using Newtonsoft.Json;
+using radmerceBot.Api.Exceptions;
 using radmerceBot.Infrastructure.Sms;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
@@ -57,8 +59,14 @@ public class ippanelService
         Console.WriteLine(response.StatusCode);
         Console.WriteLine(responseBody);
         if (!response.IsSuccessStatusCode)
-            throw new Exception($"IPPanel Error: {responseBody}");
+        {
+            if (response.StatusCode == HttpStatusCode.TooManyRequests)
+            {
+                throw new TooManyRequestsException("Too many requests (duplicate). Please retry later.");
+            }
 
+            throw new Exception($"IPPanel Error: {responseBody}");
+        }
         return responseBody;
     }
 }
