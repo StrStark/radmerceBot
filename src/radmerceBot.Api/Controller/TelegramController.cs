@@ -136,11 +136,11 @@ public class TelegramController : ControllerBase
                     User.CompletedFreeVideoCycles++;
                     User.Step = UserStep.OfferedPaidCourse;
                     await _db.SaveChangesAsync();
-                    var offerKeyboard = new ReplyKeyboardMarkup(new[]
-                    {
-                            new KeyboardButton("✅ بله، می‌خواهم دوره را بخرم"),
-                            new KeyboardButton("❌ نه، بعداً")
-                        })
+                    var offerKeyboard = new ReplyKeyboardMarkup(
+                    [
+                            [new KeyboardButton("✅ بله، می‌خواهم دوره را بخرم")],
+                            [new KeyboardButton("❌ نه، بعداً")]
+                    ]    )
                     {
                         ResizeKeyboard = true,
                         OneTimeKeyboard = true
@@ -340,16 +340,12 @@ public class TelegramController : ControllerBase
 
                     foreach (var u in matchedUsers)
                     {
-                        var inlineKeyboard = new InlineKeyboardMarkup(new[]
-                        {
-                            new []
-                            {
-                                InlineKeyboardButton.WithCallbackData(" ارسال پیام در ربات", $"bot:{u.Id}"),
-                                InlineKeyboardButton.WithCallbackData("📩 ارسال پیامک", $"sms:{u.Id}"),
-                                InlineKeyboardButton.WithCallbackData("❌ حذف مخاطب", $"delete:{u.Id}")
-
-                            },
-                        });
+                        var inlineKeyboard = new InlineKeyboardMarkup(
+                        [
+                            [InlineKeyboardButton.WithCallbackData(" ارسال پیام در ربات", $"bot:{u.Id}")],
+                            [InlineKeyboardButton.WithCallbackData("📩 ارسال پیامک", $"sms:{u.Id}")],
+                            [InlineKeyboardButton.WithCallbackData("❌ حذف مخاطب", $"delete:{u.Id}")]
+                        ]);
 
                         string userInfo = $"نام: {u.FullName}\nشماره: {u.PhoneNumber}\nوضعیت احراز هویت: {(u.IsPhoneVerified ? "✅" : "❌")}";
                         await _telegram.SendTextMessageAsync(chatId, userInfo, inlineKeyboard);
@@ -381,15 +377,13 @@ public class TelegramController : ControllerBase
                             break;
 
                         default:
-                            var smsMenuKeyboard = new ReplyKeyboardMarkup([
-                           [
-                                 new KeyboardButton("📨 ارسال پیامک تکی"),
-                                 new KeyboardButton("📂 ارسال پیامک گروهی (CSV)"),
-                                 
-                           ],
-                           [
-                               new KeyboardButton("⬅️ بازگشت به داشبورد")
-                           ]])
+                            var smsMenuKeyboard = new ReplyKeyboardMarkup(
+                            [
+                                [new KeyboardButton("📨 ارسال پیامک تکی")],
+                                [new KeyboardButton("📂 ارسال پیامک گروهی (CSV)")],
+                                [new KeyboardButton("⬅️ بازگشت به داشبورد")]
+
+                            ])
                             {
                                 ResizeKeyboard = true
                             };
@@ -516,7 +510,7 @@ public class TelegramController : ControllerBase
                             var manageVideosKeyboardawd = new ReplyKeyboardMarkup(
                                [
                                    [new KeyboardButton("📋 مشاهده ویدیوها"), new KeyboardButton("➕ افزودن ویدیو")],
-                                    [new KeyboardButton("⬅️ بازگشت به داشبورد")]
+                                   [new KeyboardButton("⬅️ بازگشت به داشبورد")]
                                ]
                            )
                             {
@@ -865,11 +859,10 @@ public class TelegramController : ControllerBase
                         user.CompletedFreeVideoCycles++;
                         user.Step = UserStep.OfferedPaidCourse; // پیشنهاد دوره‌های پولی
                         await _db.SaveChangesAsync();
-                        var offerKeyboard = new ReplyKeyboardMarkup(new[]
-                        {
-                            new KeyboardButton("✅ بله، می‌خواهم دوره را بخرم"),
-                            new KeyboardButton("❌ نه، بعداً")
-                        })
+                        var offerKeyboard = new ReplyKeyboardMarkup([
+                            [new KeyboardButton("✅ بله، می‌خواهم دوره را بخرم")],
+                            [new KeyboardButton("❌ نه، بعداً")]
+                        ])
                         {
                             ResizeKeyboard = true,
                             OneTimeKeyboard = true
