@@ -34,20 +34,10 @@ public class SmsService : ISmsService
             CancellationToken cancellationToken)
     {
 
-        var response = await _ippanelService.SendSmsAsync(
+            await _ippanelService.SendSmsAsync(
             fromNumber: _fromNumber,
             message: Message,
             mobile: phone
         );
-        if (!response.IsSuccess)
-        {
-            // IPPanel duplicate/too many requests code
-            if (response.Meta.MessageCode == "400-1")
-            {
-                throw new TooManyRequestsException("Too many requests (duplicate). Please retry later.");
-            }
-
-            throw new Exception($"IPPanel Error Code: {response.Meta.MessageCode}");
-        }
     }
 }
