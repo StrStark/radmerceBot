@@ -876,25 +876,28 @@ public class TelegramController : ControllerBase
                             "🎉 شما تمام ویدیوهای رایگان را مشاهده کردید!\nآیا مایل هستید دوره‌های پولی ما را خریداری کنید؟",
                             offerKeyboard
                         );
-                        return Ok();
                     }
-
-                    var currentVideo = videos[index];
-
-                    var nextButton = new InlineKeyboardMarkup(new[]
+                    else
                     {
+                        var currentVideo = videos[index];
+
+                        var nextButton = new InlineKeyboardMarkup(new[]
+                        {
                         new[] { InlineKeyboardButton.WithCallbackData("🎬 ویدیوی بعدی", $"nextvideo:{user.Id}") }
                     });
 
-                    await _telegram.SendVideoByFileIdAsync(
-                        chatId: chatId,
-                        fileId: currentVideo.FileId!,
-                        caption: currentVideo.Caption,
-                        replyMarkup: nextButton
-                    );
+                        await _telegram.SendVideoByFileIdAsync(
+                            chatId: chatId,
+                            fileId: currentVideo.FileId!,
+                            caption: currentVideo.Caption,
+                            replyMarkup: nextButton
+                        );
 
-                    user.CurrentFreeVideoIndex++;
-                    await _db.SaveChangesAsync();
+                        user.CurrentFreeVideoIndex++;
+                        await _db.SaveChangesAsync();
+                    }
+
+                        
                 }
                 else
                 {
