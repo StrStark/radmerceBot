@@ -1027,7 +1027,7 @@ public class TelegramController : ControllerBase
             catch (TooManyRequestsException ex)
             {
 
-                return (false, "برای ارسال محدد 10 دقیقه صبر کنید");
+                return (false, "برای ارسال مجدد 10 دقیقه صبر کنید");
             }
             catch  (Exception ex) 
             {
