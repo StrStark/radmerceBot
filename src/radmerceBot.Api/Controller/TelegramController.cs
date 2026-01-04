@@ -839,131 +839,19 @@ public class TelegramController : ControllerBase
                 }
 
             case UserStep.WaitingForOtp:
-                if (string.IsNullOrWhiteSpace(message.Text))
-                    break;
-                if(message.Text == "اصلاح شماره تماس")
                 {
-                    var phoneKeyboard3 = new ReplyKeyboardMarkup(
-                    new[]
-                    {
-                        KeyboardButton.WithRequestContact("📱 ارسال شماره من")
-                    })
-                    {
-                        ResizeKeyboard = true,
-                        OneTimeKeyboard = true
-                    };
-                    await _telegram.SendTextMessageAsync(
-                        chatId,
-                        BotTexts.PLeaseSendYourPhoneNumber,
-                        phoneKeyboard3
-                    );
-                    user.Step = UserStep.WaitingForPhone;
-                    await _db.SaveChangesAsync();
-                    break;
-                }
-                else if (message.Text == "ارسال مجدد کد")
-                {
-                    var otpCode = Random.Shared.Next(100000, 999999).ToString();
-
-                    _db.PhoneOtps.Add(new PhoneOtp
-                    {
-                        PhoneNumber = user.PhoneNumber,
-                        Code = otpCode,
-                        ExpireAt = DateTime.UtcNow.AddMinutes(10),
-                        IsUsed = false
-                    });
-
-                    await _smsService.SendOtp(
-                        user.PhoneNumber,
-                        otpCode,
-                        HttpContext.RequestAborted
-                    );
-
-                    user.Step = UserStep.WaitingForOtp;
-                    await _db.SaveChangesAsync();
-
-                    var phoneKeyboard2 = new ReplyKeyboardMarkup([
-                            [KeyboardButton.WithRequestContact("اصلاح شماره تماس")],
-                        [KeyboardButton.WithRequestContact("ارسال مجدد کد")]
-
-                        ])
-                    {
-                        ResizeKeyboard = true,
-                        OneTimeKeyboard = true
-                    };
-
-
-                    await _telegram.SendTextMessageAsync(
-                        chatId,
-                        BotTexts.TokenSent, phoneKeyboard2
-                    );
-                    break;
-                }
-                    var otp = await _db.PhoneOtps
-                        .Where(x =>
-                            x.PhoneNumber == user.PhoneNumber &&
-                            x.Code == message.Text &&
-                            !x.IsUsed &&
-                            x.ExpireAt > DateTime.UtcNow)
-                        .FirstOrDefaultAsync();
-
-                if (otp == null)
-                {
-                    await _telegram.SendTextMessageAsync(
-                        chatId,
-                        BotTexts.InvalidToken
-                    );
-                    break;
-                }
-
-                otp.IsUsed = true;
-                user.IsPhoneVerified = true;
-                
-                user.Step = UserStep.Registered;
-
-                var freeVideoKeyboard = new ReplyKeyboardMarkup(
-                    new[]
-                    {
-                        new KeyboardButton("🎥 مشاهده ویدیوهای رایگان")
-                    })
-                {
-                    ResizeKeyboard = true
-                };
-
-                await _db.SaveChangesAsync();
-
-                await _telegram.SendTextMessageAsync(
-                    chatId,
-                    BotTexts.AuthorizationCompleted,
-                    freeVideoKeyboard
-                );
-                break;
-
-            case UserStep.Registered:
-                if (message.Text == "🎥 مشاهده ویدیوهای رایگان")
-                {
-                    var videos = await _db.FreeVideos
-                        .OrderBy(v => v.Order)
-                        .ToListAsync();
-
-                    if (!videos.Any())
-                    {
-                        await _telegram.SendTextMessageAsync(chatId, BotTexts.ThereIsNoVideo);
+                    if (string.IsNullOrWhiteSpace(message.Text))
                         break;
-                    }
 
-                    int index = user.CurrentFreeVideoIndex;
+                    var text = message.Text.Trim();
 
-                    if (index >= videos.Count)
+                    // 1. اصلاح شماره تماس
+                    if (text == "اصلاح شماره تماس")
                     {
-                        user.CurrentFreeVideoIndex = 0; // بازنشانی برای مشاهده مجدد
-                        user.CompletedFreeVideoCycles++;
-                        user.Step = UserStep.OfferedPaidCourse; // پیشنهاد دوره‌های پولی
-                        await _db.SaveChangesAsync();
-                        var offerKeyboard = new ReplyKeyboardMarkup([
-                            [new KeyboardButton("✅ بله، می‌خواهم دوره را بخرم")],
-                            [new KeyboardButton("❌ نه، بعداً")]
-                        ])
+                        var phoneKeyboard2 = new ReplyKeyboardMarkup(new[]
+                        {
+                            new[] { KeyboardButton.WithRequestContact("📱 ارسال شماره من") }
+                        })
                         {
                             ResizeKeyboard = true,
                             OneTimeKeyboard = true
@@ -971,45 +859,87 @@ public class TelegramController : ControllerBase
 
                         await _telegram.SendTextMessageAsync(
                             chatId,
-                            BotTexts.DoYouWantOurPaidCoursees,
-                            offerKeyboard
-                        );
-                    }
-                    else
-                    {
-                        var currentVideo = videos[index];
-
-                        var nextButton = new InlineKeyboardMarkup(new[]
-                        {
-                        new[] { InlineKeyboardButton.WithCallbackData("🎬 ویدیوی بعدی", $"nextvideo:{user.Id}") }
-                    });
-
-                        await _telegram.SendVideoByFileIdAsync(
-                            chatId: chatId,
-                            fileId: currentVideo.FileId!,
-                            caption: currentVideo.Caption,
-                            replyMarkup: nextButton
+                            BotTexts.PLeaseSendYourPhoneNumber,
+                            phoneKeyboard2
                         );
 
-                        user.CurrentFreeVideoIndex++;
+                        user.Step = UserStep.WaitingForPhone;
                         await _db.SaveChangesAsync();
+                        break;
                     }
 
-                        
-                }
-                else
-                {
-                    var freeVideoKeyboardawd = new ReplyKeyboardMarkup(
-                    new[]
+                    // 2. ارسال مجدد کد
+                    if (text == "ارسال مجدد کد")
                     {
-                        new KeyboardButton("🎥 مشاهده ویدیوهای رایگان")
+                        var otpCode = Random.Shared.Next(100000, 999999).ToString();
+
+                        _db.PhoneOtps.Add(new PhoneOtp
+                        {
+                            PhoneNumber = user.PhoneNumber,
+                            Code = otpCode,
+                            ExpireAt = DateTime.UtcNow.AddMinutes(10),
+                            IsUsed = false
+                        });
+
+                        await _smsService.SendOtp(
+                            user.PhoneNumber,
+                            otpCode,
+                            HttpContext.RequestAborted
+                        );
+
+                        await _db.SaveChangesAsync();
+
+                        await _telegram.SendTextMessageAsync(
+                            chatId,
+                            BotTexts.TokenSent
+                        );
+
+                        break;
+                    }
+
+                    // 3. بررسی OTP
+                    var otp = await _db.PhoneOtps
+                        .Where(x =>
+                            x.PhoneNumber == user.PhoneNumber &&
+                            x.Code == text &&
+                            !x.IsUsed &&
+                            x.ExpireAt > DateTime.UtcNow)
+                        .OrderByDescending(x => x.ExpireAt)
+                        .FirstOrDefaultAsync();
+
+                    if (otp == null)
+                    {
+                        await _telegram.SendTextMessageAsync(
+                            chatId,
+                            BotTexts.InvalidToken
+                        );
+                        break;
+                    }
+
+                    // 4. تایید موفق
+                    otp.IsUsed = true;
+                    user.IsPhoneVerified = true;
+                    user.Step = UserStep.Registered;
+
+                    var freeVideoKeyboard = new ReplyKeyboardMarkup(new[]
+                    {
+                        new[] { new KeyboardButton("🎥 مشاهده ویدیوهای رایگان") }
                     })
                     {
                         ResizeKeyboard = true
                     };
-                    await _telegram.SendTextMessageAsync(chatId, BotTexts.PleaseSelectOneOfTheAvalableButtons , freeVideoKeyboardawd);
+
+                    await _db.SaveChangesAsync();
+
+                    await _telegram.SendTextMessageAsync(
+                        chatId,
+                        BotTexts.AuthorizationCompleted,
+                        freeVideoKeyboard
+                    );
+
+                    break;
                 }
-                break;
+
 
             case UserStep.OfferedPaidCourse:
                 switch (message.Text)
@@ -1042,7 +972,7 @@ public class TelegramController : ControllerBase
                         break;
 
                     case "❌ نه، بعداً":
-                        freeVideoKeyboard = new ReplyKeyboardMarkup(
+                        var freeVideoKeyboard = new ReplyKeyboardMarkup(
                         new[]
                         {
                              new KeyboardButton("🎥 مشاهده ویدیوهای رایگان")
