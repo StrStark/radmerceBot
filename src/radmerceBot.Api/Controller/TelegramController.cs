@@ -756,15 +756,32 @@ public class TelegramController : ControllerBase
                 await _db.SaveChangesAsync();
                 break;
 
-            case UserStep.WaitingForPhone: // add checking it the way they sent there number is the right way ... 
-                if (message.Contact == null || message.Contact.UserId != chatId)
+            case UserStep.WaitingForPhone:
                 {
-                    if (!IsValidPhone(message.Text!.Trim()))
+                    string? phoneNumber = null;
+
+                    // 1. اگر از طریق دکمه Contact ارسال شده
+                    if (message.Contact != null && message.Contact.UserId == chatId)
                     {
-                        var phoneKeyboard23 = new ReplyKeyboardMarkup(
-                        new[]
+                        phoneNumber = message.Contact.PhoneNumber;
+                    }
+                    // 2. اگر دستی تایپ شده
+                    else if (!string.IsNullOrWhiteSpace(message.Text))
+                    {
+                        var typedNumber = message.Text.Trim();
+
+                        if (IsValidPhone(typedNumber))
                         {
-                            KeyboardButton.WithRequestContact("📱 ارسال شماره من")
+                            phoneNumber = typedNumber;
+                        }
+                    }
+
+                    // 3. اگر هیچ شماره معتبری نداریم
+                    if (string.IsNullOrWhiteSpace(phoneNumber))
+                    {
+                        var phoneKeyboard2 = new ReplyKeyboardMarkup(new[]
+                        {
+                            new[] { KeyboardButton.WithRequestContact("📱 ارسال شماره من") }
                         })
                         {
                             ResizeKeyboard = true,
@@ -774,49 +791,52 @@ public class TelegramController : ControllerBase
                         await _telegram.SendTextMessageAsync(
                             chatId,
                             BotTexts.PLeaseSendYourNumberOnlyUsingButton,
-                            phoneKeyboard23
+                            phoneKeyboard2
                         );
+
+                        break; // خیلی مهم
                     }
 
+                    // 4. ذخیره شماره معتبر
+                    user.PhoneNumber = phoneNumber;
+
+                    var otpCode = Random.Shared.Next(100000, 999999).ToString();
+
+                    _db.PhoneOtps.Add(new PhoneOtp
+                    {
+                        PhoneNumber = user.PhoneNumber,
+                        Code = otpCode,
+                        ExpireAt = DateTime.UtcNow.AddMinutes(10),
+                        IsUsed = false
+                    });
+
+                    await _smsService.SendOtp(
+                        user.PhoneNumber,
+                        otpCode,
+                        HttpContext.RequestAborted
+                    );
+
+                    user.Step = UserStep.WaitingForOtp;
+                    await _db.SaveChangesAsync();
+
+                    var otpKeyboard = new ReplyKeyboardMarkup(new[]
+                    {
+                        new[] { new KeyboardButton("✏️ اصلاح شماره تماس") },
+                        new[] { new KeyboardButton("🔁 ارسال مجدد کد") }
+                    })
+                    {
+                        ResizeKeyboard = true,
+                        OneTimeKeyboard = true
+                    };
+
+                    await _telegram.SendTextMessageAsync(
+                        chatId,
+                        BotTexts.TokenSent,
+                        otpKeyboard
+                    );
+
+                    break;
                 }
-
-                user.PhoneNumber = message.Contact!.PhoneNumber ?? message.Text!.Trim() ;
-
-                var otpCode = Random.Shared.Next(100000, 999999).ToString();
-
-                _db.PhoneOtps.Add(new PhoneOtp
-                {
-                    PhoneNumber = user.PhoneNumber,
-                    Code = otpCode,
-                    ExpireAt = DateTime.UtcNow.AddMinutes(10),
-                    IsUsed = false
-                });
-
-                await _smsService.SendOtp(
-                    user.PhoneNumber,
-                    otpCode,
-                    HttpContext.RequestAborted
-                );
-
-                user.Step = UserStep.WaitingForOtp;
-                await _db.SaveChangesAsync();
-
-                var phoneKeyboard2 = new ReplyKeyboardMarkup([
-                        [KeyboardButton.WithRequestContact("اصلاح شماره تماس")],
-                        [KeyboardButton.WithRequestContact("ارسال مجدد کد")]
-
-                    ])
-                {
-                    ResizeKeyboard = true,
-                    OneTimeKeyboard = true
-                };
-
-
-                await _telegram.SendTextMessageAsync(
-                    chatId,
-                    BotTexts.TokenSent , phoneKeyboard2
-                );
-                break;
 
             case UserStep.WaitingForOtp:
                 if (string.IsNullOrWhiteSpace(message.Text))
@@ -843,7 +863,7 @@ public class TelegramController : ControllerBase
                 }
                 else if (message.Text == "ارسال مجدد کد")
                 {
-                    otpCode = Random.Shared.Next(100000, 999999).ToString();
+                    var otpCode = Random.Shared.Next(100000, 999999).ToString();
 
                     _db.PhoneOtps.Add(new PhoneOtp
                     {
@@ -862,7 +882,7 @@ public class TelegramController : ControllerBase
                     user.Step = UserStep.WaitingForOtp;
                     await _db.SaveChangesAsync();
 
-                    phoneKeyboard2 = new ReplyKeyboardMarkup([
+                    var phoneKeyboard2 = new ReplyKeyboardMarkup([
                             [KeyboardButton.WithRequestContact("اصلاح شماره تماس")],
                         [KeyboardButton.WithRequestContact("ارسال مجدد کد")]
 
